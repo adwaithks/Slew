@@ -1,0 +1,427 @@
+
+.Chatroom {
+    width: 100%;
+    height: 100%;
+}
+
+.nodisplay  {
+    display: none;
+}
+
+.headWindow {
+    height: fit-content;
+    margin-top: 20px;
+    background-color: black;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.userToggle {
+    background-color: rgb(192, 255, 65);
+    border-radius: 3px;
+    margin-top: 1px;
+    width: 40px;
+    cursor: pointer;
+    margin-left: 5px;
+    height: fit-content;
+    text-align: center;
+}
+
+.userToggle:hover {
+    opacity: 0.5;
+}
+
+.chevron-icon {
+    font-size: 35px !important;
+}
+
+.main-window {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    height: calc(100vh - 70px);
+    display: flex;
+    border-radius: 3px;
+}
+
+.users {
+    width: 40%;
+    display: flex;
+    transition: width 2s ease;
+    flex-direction: column;
+    border-bottom-left-radius: 5px;
+    border-right: yellowgreen solid 3px;
+    background-color: rgb(8, 8, 8);
+    box-shadow: 10px 10px 15px -5px greenyellow;
+    -webkit-box-shadow: 10px 10px 15px -5px greenyellow;
+    -moz-box-shadow: 10px 10px 15px -5px greenyellow;
+}
+
+.user {
+    background-color: greenyellow;
+    border-radius: 5px;
+    height: 40px;
+    display: flex;
+    text-align: center;
+    font-size: 18px;
+    text-transform: capitalize;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.user > .online {
+    border-radius: 50%;
+    background-color: rgb(0, 201, 0);
+    width: 10px;
+    margin-right: 10px;
+    height: 10px;
+}
+
+.user > h4 {
+    margin-left: 3px;
+}
+
+.chat-window {
+    display: flex;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    width: 100%;
+    background-color: rgb(15, 15, 15);
+    box-shadow: 10px 10px 15px -5px greenyellow;
+    -webkit-box-shadow: 10px 10px 15px -5px greenyellow;
+    -moz-box-shadow: 10px 10px 15px -5px greenyellow;
+    border-bottom-right-radius: 5px;
+    flex-direction: column;
+}
+
+.chat-window::-webkit-scrollbar {
+    display: none;
+  }
+
+.chats {
+    height: 95%;
+    display: flex;
+    overflow-x: hidden;
+    flex-direction: column;
+    width: 100% !important;
+}
+
+
+.modal {
+    position: absolute;
+    border-radius: 3px;
+    outline: none;
+    background-color: rgb(22, 22, 22);
+    border: darkgray solid 1px;
+    text-align: center;
+    height: fit-content;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+.modal > .nameForm > h4 {
+    font-weight: 400;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 18px;
+    color: white;
+    margin-top: 30px;
+}
+
+.modal > .nameForm > input {
+    width: 90%;
+    height: 32px;
+    outline: none;
+    border: none;
+    border-radius: 3px;
+    padding: 2px;
+    font-size: 17px;
+    margin-top: 20px;
+}
+
+.nameForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.nameForm > button {
+    width: 90px;
+    margin-top: 15px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 18px;
+    color: black;
+    outline: none;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: greenyellow;
+}
+
+.newComer {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(153, 255, 0);
+    height: 50px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.exitmsg {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(255, 0, 0);
+    height: 50px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.nameForm > button:hover {
+    opacity: 0.5;
+}
+
+.snackbar {
+    top: 0;
+}
+
+.send-message {
+    height: fit-content;
+    width: 98.5%;
+}
+
+.audio-message {
+    height: fit-content;
+    bottom: 0;
+    float: left;
+    margin-right: 10px;
+    color: white;
+    margin-left: 15px;
+    margin-top: 10px;
+    border-radius: 5px;
+    word-break: break-all;
+    margin-bottom: 5px;
+    width: fit-content;
+}
+
+.audio-message > audio {
+    margin-top: 7px;
+}
+
+
+.message {
+    height: fit-content;
+    bottom: 0;
+    float: left;
+    margin-right: 10px;
+    color: white;
+    margin-left: 15px;
+    margin-top: 10px;
+    border-radius: 5px;
+    word-break: break-all;
+    margin-bottom: 5px;
+    width: fit-content;
+}
+
+.group-intro {
+    background-color: greenyellow;
+    display: flex;
+    border-radius: 5px;
+    width: 90%;
+    height: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin-top: 100px;
+    margin-left: auto;
+    text-align: center;
+    margin-right: auto;
+    flex-direction: column;
+}
+
+.group-intro > * {
+    color: rgb(22, 22, 22);
+    font-weight: 400;
+}
+
+.group-intro > h1 {
+    margin-bottom: 30px;
+    font-weight: 400;
+}
+
+
+.group-intro-copylink {
+    background-color: rgb(36, 36, 36);
+    width: 80%;
+    margin-left: auto;
+    cursor: pointer;
+    word-break: break-all;
+    margin-right: auto;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    border-radius: 5px;
+    height: 35px;
+}
+
+.group-intro-copylink > h4 {
+    color: greenyellow !important;
+    font-weight: 400;
+    margin-left: 2px;
+}
+
+.copy-icon {
+    color: greenyellow !important;
+    font-size: 25px !important;
+}
+
+.senderinfo {
+    width: 100%;
+    height: fit-content;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-left: 5px;
+    }
+
+.senderinfo > h4 {
+    margin-right: 6px;
+    font-weight: 550;
+    font-size: 19px;
+    text-transform: capitalize;
+}
+
+.senderinfo > h5 {
+    font-size: 15px;
+    margin-right: 6px;
+    margin-left: 5px;
+    font-weight: 400;
+    color: rgb(141, 141, 141);
+}
+
+.message > h5 {
+    font-weight: 400;
+    margin-left: 5px;
+    margin-right: 5px;
+    color: rgb(204, 204, 204);
+    margin-bottom: 3px;
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+.audio-modal {
+    position: absolute;
+    border-radius: 3px;
+    outline: none;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    height: 200px;
+    width: fit-content;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(19, 19, 19);
+}
+
+.audio-modal > h3 {
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    color: white;
+    font-weight: 400;
+}
+
+audio {
+    outline: none;
+    border: none;
+}
+
+.audio-icon-container {
+    border-radius: 50%;
+    width: 60px;
+    height:60px;
+    display: flex;
+    cursor: pointer;
+    margin-bottom: 10px;
+    margin-top: 20px;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+}
+
+audio::-webkit-media-controls-panel{
+    background-color: rgb(174, 255, 12) !important;
+    border-radius: 5px !important; 
+}
+
+
+.mic-icon {
+    color: rgb(174, 255, 12) !important;
+    font-size: 55px !important;
+}
+
+.messageInputContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    background-color: rgb(17, 17, 17);
+    height: fit-content;
+    width: 100%;
+}
+
+.messageInputContainer > input {
+    width: 100%;
+    height: 30px;
+    float: left;
+    padding: 4px;
+    font-size: 19px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+}
+
+.send-icon {
+    font-size: 35px !important;
+    margin-right: 10px;
+    float: right;
+    color: greenyellow;
+    cursor: pointer;
+    margin-left: 10px;
+    height: 40px !important;
+}
+
+@media (max-width: 460px) {
+    .user > .online {
+        display: none;
+    }
+}
