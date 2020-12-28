@@ -11,7 +11,7 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 
-const socket = io('http://localhost:5000', {
+const socket = io('wss://slew.herokuapp.com', {
     transports: ['websocket']
 });
 var temp = '';
@@ -33,7 +33,6 @@ function ChatRoom() {
     const [datetime, setDateTime] = useState('');
     const [color, setColor] = useState('');
     const [name, setName] = useState('');
-    const [test, setTest] = useState('');
     const [allMsg, setAllMsg] = useState([]);
     const [snackMsg, setSnackMsg] = useState('');
     const [modalIsOpen, setModalIsOpen] = useState(false);
