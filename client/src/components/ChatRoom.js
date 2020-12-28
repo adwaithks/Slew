@@ -86,11 +86,7 @@ function ChatRoom() {
             });
 
             socket.on('message-from-server', (msg) => {
-                setAllMsg((allMsg) => [...allMsg, {
-                    message: msg.message,
-                    user: msg.user,
-                    time: msg.time
-                }]);
+                setAllMsg((allMsg) => [...allMsg, msg]);
                 displayNotification(msg);
             });
 
@@ -174,12 +170,7 @@ function ChatRoom() {
         });
 
         socket.on('message-from-server', (msg) => {
-            setAllMsg((allMsg) => [...allMsg, {
-                message: msg.message,
-                user: msg.user,
-                time: msg.time,
-                color: msg.color
-            }]);
+            setAllMsg((allMsg) => [...allMsg, msg]);
             displayNotification(msg);
         })
     }
@@ -231,7 +222,6 @@ function ChatRoom() {
             connectClient();
             setModalIsOpen(false);
         }
-
     }
 
     const copyShareHandler = () => {
@@ -262,7 +252,6 @@ function ChatRoom() {
                     mediaRecorder.ondataavailable = function (e) {
                         console.log('collection audio...');
                         chunks.push(e.data);
-                        console.log('chunks: ' + chunks);
                     }
                 }).catch(function (err) {
                     console.log('The following getUserMedia error occurred: ' + err);
@@ -330,8 +319,9 @@ function ChatRoom() {
                                                 <h4 style={{ color: each.color || color }}>{each.user}</h4>
                                                 <h5>{each.time}</h5>
                                             </div>
-                                            <audio src={window.URL.createObjectURL(each.blob)} controls></audio>
+                                            <audio src={window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/ogg; codecs=opus' }))} controls></audio>
                                         </div>
+
                                     ) : (
                                                     <div key={index} className="message">
                                                         <div className="senderinfo">
@@ -378,22 +368,22 @@ function ChatRoom() {
                                             + currentdate.getMinutes() + ":"
                                             + currentdate.getSeconds();
                                         mediaRecorder.onstop = function (e) {
-                                            const blob = new Blob(chunks, { 'type': 'audio/ogg; codecs=opus' });
-                                            chunks = [];
-                                            const audioURL = window.URL.createObjectURL(blob);
-                                            setAllMsg(() => [...allMsg, {
-                                                blob: blob,
-                                                user: name,
-                                                audioMsg: true,
-                                                time: date_time
-                                            }])
+                                            const blob = new Blob(chunks, { 'type': 'audio/ogg; codecs=opus' });                                                    
                                             socket.emit('message-to-server', {
-                                                blob: blob,
+                                                chunks: chunks,
                                                 user: name,
                                                 audioMsg: true,
                                                 color: color,
                                                 time: date_time
                                             });
+                                            setAllMsg(() => [...allMsg, {
+                                                chunks: chunks,
+                                                user: name,
+                                                audioMsg: true,
+                                                time: date_time
+                                            }])                  
+                                            chunks = []; 
+                                            mediaRecorder.stream.getTracks().forEach( track => track.stop() ); // stop each of them
                                             setAudioModal(false);
                                         }
                                     } catch (error) {

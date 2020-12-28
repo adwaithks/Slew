@@ -122,7 +122,8 @@
 
 .modal {
     position: absolute;
-    border-radius: 3px;
+    border-radius: 5px;
+    width: fit-content;
     outline: none;
     background-color: rgb(22, 22, 22);
     border: darkgray solid 1px;
@@ -135,8 +136,8 @@
 
 .modal > .nameForm > h4 {
     font-weight: 400;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
     font-size: 18px;
     color: white;
     margin-top: 30px;
@@ -148,6 +149,7 @@
     outline: none;
     border: none;
     border-radius: 3px;
+    margin-bottom: 5px;
     padding: 2px;
     font-size: 17px;
     margin-top: 20px;
@@ -337,7 +339,7 @@
 
 .audio-modal {
     position: absolute;
-    border-radius: 3px;
+    border-radius: 5px;
     outline: none;
     top: 25%;
     left: 50%;
@@ -423,5 +425,14 @@ audio::-webkit-media-controls-panel{
 @media (max-width: 460px) {
     .user > .online {
         display: none;
+    }
+
+    .main-window {
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        height: calc(100vh - 130px);
+        display: flex;
+        border-radius: 3px;
     }
 }
