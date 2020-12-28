@@ -15,7 +15,6 @@ const socket = io('wss://slew.herokuapp.com', {
     transports: ['websocket']
 });
 var temp = '';
-var audioRec = false;
 var mediaRecorder = null;
 var chunks = [];
 var online = true;
@@ -24,9 +23,10 @@ var online = true;
 
 function ChatRoom() {
     const inputRef = useRef(null);
+    const [isAudioRec, setIsAudioRec] = useState(false);
     const [users, setUsers] = useState([]);
     const [usersExp, setUsersExp] = useState(true);
-    const [audioMsg, setAudioMsg] = useState('Press to start recording audio');
+    const [audioMsg, setAudioMsg] = useState('Press to start recording audio...');
     const [roomName, setRoomName] = useState('');
     const [msgOrAudio, setMsgOrAudio] = useState('audio');
     const [audioModal, setAudioModal] = useState(false);
@@ -61,8 +61,8 @@ function ChatRoom() {
             });
 
             socket.on('welcome-message', (data) => {
-                setSnackMsg(data.user + ' has hopped in!');
-                setSnackOpen(true);
+                //setSnackMsg(data.user + ' has hopped in!');
+                //setSnackOpen(true);
                 const temp = {
                     newComer: true,
                     message: data.user + ' has joined ' + data.roomName + ' 🥳🥳🥳'
@@ -75,8 +75,8 @@ function ChatRoom() {
             });
 
             socket.on('user-exit', (data) => {
-                setSnackMsg(data.user + ' has left!');
-                setSnackOpen(true);
+                //setSnackMsg(data.user + ' has left!');
+                //setSnackOpen(true);
                 const exitmsg = {
                     exitmsg: true,
                     message: data.user + ' has left!'
@@ -145,8 +145,8 @@ function ChatRoom() {
         });
 
         socket.on('welcome-message', (data) => {
-            setSnackMsg(data.user + ' has hopped in!');
-            setSnackOpen(true);
+            //setSnackMsg(data.user + ' has hopped in!');
+            //setSnackOpen(true);
             const temp = {
                 newComer: true,
                 message: data.user + ' has joined ' + data.roomName + ' 🥳🥳🥳'
@@ -155,8 +155,8 @@ function ChatRoom() {
         });
 
         socket.on('user-exit', (data) => {
-            setSnackMsg(data.user + ' has left!');
-            setSnackOpen(true);
+            //setSnackMsg(data.user + ' has left!');
+            //setSnackOpen(true);
             const exitmsg = {
                 exitmsg: true,
                 message: data.user + ' has left!'
@@ -226,8 +226,8 @@ function ChatRoom() {
 
     const copyShareHandler = () => {
         navigator.clipboard.writeText(window.location.href).then(() => {
-            setSnackMsg('Link Copied');
-            setSnackOpen(true);
+            //setSnackMsg('Link Copied');
+            //setSnackOpen(true);
             console.log('copied');
         }, () => {
             console.log('could not copy');
@@ -235,8 +235,10 @@ function ChatRoom() {
     }
 
     const recordAudioModelPop = () => {
-        console.log('popping modal');
         setAudioModal(true);
+        setIsAudioRec(true);
+        console.log('Starting to record...');
+        recordAudio();
     }
 
     const recordAudio = () => {
@@ -247,10 +249,8 @@ function ChatRoom() {
                 }).then(function (stream) {
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.start();
-
-                    console.log('started recording inside recordAudio()....');
                     mediaRecorder.ondataavailable = function (e) {
-                        console.log('collection audio...');
+                        console.log('Data available | Collection audio chunks...');
                         chunks.push(e.data);
                     }
                 }).catch(function (err) {
@@ -261,7 +261,6 @@ function ChatRoom() {
             console.log('getUserMedia not supported on your browser!');
         }
     }
-
 
     return (
         <div className="Chatroom">
@@ -341,25 +340,24 @@ function ChatRoom() {
                         className="audio-modal"
                         onRequestClose={() => {
                             setAudioModal(false);
+                            setIsAudioRec(false);
                             try {
                                 mediaRecorder.stop();
+                                mediaRecorder.stream.getTracks().forEach( track => track.stop() ); // stop each of them
                             } catch (err) {
 
                             }
                         }}
                         contentLabel="Example Modal"
                     >
-                        <h3>{audioMsg}</h3>
+                        <h3>Listening...</h3>
                         <div className="audio-icon-container">
-                            <MicIcon className="mic-icon" onClick={() => {
-                                audioRec = !audioRec;
-                                if (audioRec) {
-                                    console.log('recording');
-                                    recordAudio();
-                                } else {
+                            <MicIcon className="recording-mic-icon" onClick={() => {
+                                setIsAudioRec(false);
                                     try {
+                                        setIsAudioRec(false);
                                         mediaRecorder.stop();
-                                        console.log('rec stopped');
+                                        console.log('recording stopped');
                                         var currentdate = new Date();
                                         var date_time = currentdate.getDate() + "/"
                                             + (currentdate.getMonth() + 1) + "/"
@@ -368,7 +366,6 @@ function ChatRoom() {
                                             + currentdate.getMinutes() + ":"
                                             + currentdate.getSeconds();
                                         mediaRecorder.onstop = function (e) {
-                                            const blob = new Blob(chunks, { 'type': 'audio/ogg; codecs=opus' });                                                    
                                             socket.emit('message-to-server', {
                                                 chunks: chunks,
                                                 user: name,
@@ -387,9 +384,9 @@ function ChatRoom() {
                                             setAudioModal(false);
                                         }
                                     } catch (error) {
-                                        console.log('no media recoder');
+                                        console.log('Some Error happened | No mediaRecorder found.');
                                     }
-                                }
+                                
                             }} />
                         </div>
                     </Modal>
@@ -401,13 +398,19 @@ function ChatRoom() {
                     >
                         <form className="nameForm" onSubmit={nameHandler}>
                             <h4>Enter your name for others to identify</h4>
-                            <input ref={inputRef} type="text" value={name} onChange={(e) => { setName(e.target.value) }} />
+                            <input ref={inputRef} type="text" value={name} onChange={(e) => { 
+                                e.preventDefault();
+                                setName(e.target.value); 
+                                }} />
                             <button type="submit">Save</button>
                         </form>
                     </Modal>
                     <div className="send-message">
                         <form onSubmit={sendMessage} className="messageInputContainer">
-                            <input ref={inputRef} type="text" onChange={messageHandler} value={message} placeholder="Message..." />
+                            <input ref={inputRef} type="text" onChange={(e) => {
+                                e.preventDefault();
+                                messageHandler(e);
+                                }} value={message} placeholder="Message..." />
                             {
                                 (msgOrAudio == 'audio') ? (
                                     <MicIcon onClick={recordAudioModelPop} className="send-icon" />

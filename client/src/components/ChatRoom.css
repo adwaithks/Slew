@@ -345,7 +345,7 @@
     left: 50%;
     transform: translate(-50%, 50%);
     height: 200px;
-    width: fit-content;
+    width: 300px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -386,10 +386,36 @@ audio::-webkit-media-controls-panel{
 }
 
 
-.mic-icon {
-    color: rgb(174, 255, 12) !important;
+.recording-mic-icon {
+    color: rgb(223, 0, 0) !important;
+    font-size: 55px !important;
+    animation: pulse 1.2s infinite;
+    border-radius: 50%;
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(0.90);
+		box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
+	}
+
+	70% {
+		transform: scale(1);
+		box-shadow: 0 0 0 10px rgba(201, 0, 0, 0.7);
+	}
+
+	100% {
+		transform: scale(0.90);
+		box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
+	}
+}
+
+.notrecording-mic-icon {
+    color: rgb(156, 255, 8) !important;
     font-size: 55px !important;
 }
+
+
 
 .messageInputContainer {
     display: flex;
@@ -417,9 +443,14 @@ audio::-webkit-media-controls-panel{
     margin-right: 10px;
     float: right;
     color: greenyellow;
+    transition: transform 1s;
     cursor: pointer;
     margin-left: 10px;
     height: 40px !important;
+}
+
+.send-icon:hover {
+    transform: scale(1.1);
 }
 
 @media (max-width: 460px) {

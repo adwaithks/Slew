@@ -6,6 +6,21 @@
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/assets/512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/assets/41.png",
+      "type": "image/png",
+      "sizes": "41x41"
+    },
+    {
+      "src": "/assets/96.png",
+      "type": "image/png",
+      "sizes": "96x96"
     }
   ],
   "start_url": ".",
