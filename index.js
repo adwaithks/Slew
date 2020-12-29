@@ -4,9 +4,10 @@ const server = require('http').createServer(app);
 const path = require('path');
 const io = require('socket.io')(server);
 //const morgan = require('morgan');
+const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 
-var rooms = [];
+var privateRooms = [];
 
 //app.use(morgan('dev'));
 app.use(cors());
@@ -17,7 +18,50 @@ app.get('*', (req, res) => {
 })
 
 io.on('connection', socket => {
+
+    socket.on('create-private-room', data => {
+        var uuid = uuidv4();
+        const obj = {
+            id: uuid,
+            slewName: data.slewName,
+            password: data.pass
+        }
+        privateRooms.push(obj);
+    });
+
+    socket.on('passcode', (pass) => {
+        for(var i=0; i < privateRooms.length; i++) {
+            if (privateRooms[i].slewName == socket.roomName) {
+                if (privateRooms[i].password == pass) {
+                    var connectedClients = [];
+                    socket.join(socket.roomName);
+                    var clients = io.sockets.sockets;
+                    clients.forEach(element => {
+                        if (element.roomName == socket.roomName) {
+                            connectedClients.push(element.user)
+                        }
+                    });
+            
+                    socket.emit('welcome-self-message', {
+                        user: socket.user,
+                        roomName: socket.roomName,
+                        color: socket.color
+                    });
+            
+                    io.in(socket.roomName).emit('connected-clients', connectedClients);
+                    socket.broadcast.to(socket.roomName).emit('welcome-message', {
+                        user: socket.user,
+                        roomName: socket.roomName
+                    });
+                    console.log(socket.user + ' joined room: ' + socket.roomName + ' with color: ' + socket.color);                   
+                    break;
+                }
+            }
+        }
+    });
+
     socket.on('join-room', (data) => {
+        var private = false;
         var connectedClients = [];
         var colors = ['red', 'green', 'violet', 'pink', 'orange', 'yellow']
         var color = colors[Math.floor(Math.random() * colors.length)];
@@ -25,30 +69,40 @@ io.on('connection', socket => {
         socket.roomName = data.roomName;
         socket.user = data.user;
         socket.color = color;
-        socket.join(socket.roomName);
-        var clients = io.sockets.sockets;
-        clients.forEach(element => {
-            if (element.roomName == socket.roomName) {
-                connectedClients.push(element.user)
+        for(var i=0; i < privateRooms.length; i++) {
+            if (privateRooms[i].slewName == socket.roomName) {
+                private = true;
+                break;
             }
-        });
-
-        socket.emit('welcome-self-message', {
-            user: socket.user,
-            roomName: socket.roomName,
-            color: socket.color
-        });
-
-        io.in(socket.roomName).emit('connected-clients', connectedClients);
-        socket.broadcast.to(socket.roomName).emit('welcome-message', {
-            user: socket.user,
-            roomName: socket.roomName
-        });
-        console.log(socket.user + ' joined room: ' + socket.roomName + ' with color: ' + socket.color);
+        }
+        if (private == true) {
+            socket.emit('pass-required', 'Enter Password')
+        } else {
+            socket.join(socket.roomName);
+            var clients = io.sockets.sockets;
+            clients.forEach(element => {
+                if (element.roomName == socket.roomName) {
+                    connectedClients.push(element.user)
+                }
+            });
+    
+            socket.emit('welcome-self-message', {
+                user: socket.user,
+                roomName: socket.roomName,
+                color: socket.color
+            });
+    
+            io.in(socket.roomName).emit('connected-clients', connectedClients);
+            socket.broadcast.to(socket.roomName).emit('welcome-message', {
+                user: socket.user,
+                roomName: socket.roomName
+            });
+            console.log(socket.user + ' joined room: ' + socket.roomName + ' with color: ' + socket.color);
+        }
+        
     });
 
     socket.on('message-to-server', (msg) => {
-        console.log(msg);
         socket.broadcast.to(socket.roomName).emit('message-from-server', msg);
     });
 
@@ -65,6 +119,13 @@ io.on('connection', socket => {
         socket.broadcast.to(socket.roomName).emit('user-exit', {
             user: socket.user
         });
+        if (connectedClients.length == 0) {
+            for (var i = privateRooms.length - 1; i >= 0; --i) {
+                if (privateRooms[i].slewName == socket.roomName) {
+                    privateRooms.splice(i,1);
+                }
+            }
+        }
         console.log('user disconnected !');
     });
 });

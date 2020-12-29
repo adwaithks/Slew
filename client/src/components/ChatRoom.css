@@ -123,7 +123,7 @@
 .modal {
     position: absolute;
     border-radius: 5px;
-    width: fit-content;
+    width: 320px;
     outline: none;
     background-color: rgb(22, 22, 22);
     border: darkgray solid 1px;
@@ -140,17 +140,18 @@
     margin-right: 10px;
     font-size: 18px;
     color: white;
-    margin-top: 30px;
+    margin-top: 25px;
 }
 
+
 .modal > .nameForm > input {
-    width: 90%;
-    height: 32px;
+    width: 85%;
+    height: 22px;
     outline: none;
     border: none;
     border-radius: 3px;
     margin-bottom: 5px;
-    padding: 2px;
+    padding: 10px;
     font-size: 17px;
     margin-top: 20px;
 }
@@ -289,7 +290,7 @@
     align-items: center;
     margin-top: 10px;
     border-radius: 5px;
-    height: 35px;
+    height: fit-content;
 }
 
 .group-intro-copylink > h4 {
@@ -440,13 +441,28 @@ audio::-webkit-media-controls-panel{
 
 .send-icon {
     font-size: 35px !important;
-    margin-right: 10px;
+    margin-right: 8px;
+    float: right;
+    color: greenyellow;
+    transition: transform 1s;
+    cursor: pointer;
+    margin-left: 8px;
+    height: 40px !important;
+}
+
+.image-icon {
+    font-size: 32px !important;
     float: right;
     color: greenyellow;
     transition: transform 1s;
     cursor: pointer;
     margin-left: 10px;
     height: 40px !important;
+}
+
+
+.image-icon:hover {
+    transform: scale(1.1);
 }
 
 .send-icon:hover {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import io from 'socket.io-client';
 import Snackbar from '@material-ui/core/Snackbar';
 import SendIcon from '@material-ui/icons/Send';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -9,11 +8,9 @@ import MicIcon from '@material-ui/icons/Mic';
 import './ChatRoom.css';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { socket } from '../socket';
 
 
-const socket = io('wss://slew.herokuapp.com', {
-    transports: ['websocket']
-});
 var temp = '';
 var mediaRecorder = null;
 var chunks = [];
@@ -26,8 +23,9 @@ function ChatRoom() {
     const [isAudioRec, setIsAudioRec] = useState(false);
     const [users, setUsers] = useState([]);
     const [usersExp, setUsersExp] = useState(true);
-    const [audioMsg, setAudioMsg] = useState('Press to start recording audio...');
     const [roomName, setRoomName] = useState('');
+    const [pass, setPass] = useState('');
+    const [passModalIsOpen, setPassModalIsOpen] = useState(false);
     const [msgOrAudio, setMsgOrAudio] = useState('audio');
     const [audioModal, setAudioModal] = useState(false);
     const [datetime, setDateTime] = useState('');
@@ -51,18 +49,26 @@ function ChatRoom() {
             var user = window.localStorage.getItem('user');
             setRoomName(roomName);
 
+            // join room
             socket.emit('join-room', {
                 user: user,
                 roomName: roomName
             });
 
-            socket.on('connected-clients', (data) => {
-                setUsers(data);
+            // password required - protected room
+            socket.on('pass-required', data => {
+                setPassModalIsOpen(true);
             });
 
+            // alert self you have joined room
+            socket.on('welcome-self-message', data => {
+                setModalIsOpen(false);
+                setPassModalIsOpen(false);
+                setColor(data.color);
+            });
+
+            // alert others that a new person has joined
             socket.on('welcome-message', (data) => {
-                //setSnackMsg(data.user + ' has hopped in!');
-                //setSnackOpen(true);
                 const temp = {
                     newComer: true,
                     message: data.user + ' has joined ' + data.roomName + ' 🥳🥳🥳'
@@ -70,25 +76,25 @@ function ChatRoom() {
                 setAllMsg((allMsg) => [...allMsg, temp]);
             });
 
-            socket.on('welcome-self-message', data => {
-                setColor(data.color);
-            });
-
+            // user exit followup
             socket.on('user-exit', (data) => {
-                //setSnackMsg(data.user + ' has left!');
-                //setSnackOpen(true);
                 const exitmsg = {
                     exitmsg: true,
                     message: data.user + ' has left!'
                 }
                 setAllMsg((allMsg) => [...allMsg, exitmsg]);
-
             });
 
+            // get connected clients in room
+            socket.on('connected-clients', (connectedClients) => {
+                setUsers(connectedClients);
+            });
+
+            // message coming from server
             socket.on('message-from-server', (msg) => {
                 setAllMsg((allMsg) => [...allMsg, msg]);
                 displayNotification(msg);
-            });
+            })
 
             return () => {
                 socket.disconnect();
@@ -130,23 +136,32 @@ function ChatRoom() {
                 console.log('offline');
                 online = false;
             }
-        })
+        });
+
         var roomName = window.location.href.split('/')[4];
         setRoomName(roomName);
         var user = window.localStorage.getItem('user');
 
+        // join room
         socket.emit('join-room', {
             user: user,
             roomName: roomName
         });
 
+        // password required - protected room
+        socket.on('pass-required', data => {
+            setPassModalIsOpen(true);
+        });
+
+        // alert self you have joined room
         socket.on('welcome-self-message', data => {
+            setModalIsOpen(false);
+            setPassModalIsOpen(false);
             setColor(data.color);
         });
 
+        // alert others that a new person has joined
         socket.on('welcome-message', (data) => {
-            //setSnackMsg(data.user + ' has hopped in!');
-            //setSnackOpen(true);
             const temp = {
                 newComer: true,
                 message: data.user + ' has joined ' + data.roomName + ' 🥳🥳🥳'
@@ -154,25 +169,25 @@ function ChatRoom() {
             setAllMsg((allMsg) => [...allMsg, temp]);
         });
 
+        // user exit followup
         socket.on('user-exit', (data) => {
-            //setSnackMsg(data.user + ' has left!');
-            //setSnackOpen(true);
             const exitmsg = {
                 exitmsg: true,
                 message: data.user + ' has left!'
             }
             setAllMsg((allMsg) => [...allMsg, exitmsg]);
-
         });
 
+        // get connected clients in room
         socket.on('connected-clients', (connectedClients) => {
             setUsers(connectedClients);
         });
 
+        // message coming from server
         socket.on('message-from-server', (msg) => {
             setAllMsg((allMsg) => [...allMsg, msg]);
             displayNotification(msg);
-        })
+        });
     }
 
 
@@ -262,6 +277,11 @@ function ChatRoom() {
         }
     }
 
+    const passHandler = (e) => {
+        e.preventDefault();
+        socket.emit('passcode', pass);
+    }
+
     return (
         <div className="Chatroom">
             <Snackbar className="snackbar" open={snackOpen} onClose={() => { setSnackOpen(false) }} autoHideDuration={3000}>
@@ -343,7 +363,7 @@ function ChatRoom() {
                             setIsAudioRec(false);
                             try {
                                 mediaRecorder.stop();
-                                mediaRecorder.stream.getTracks().forEach( track => track.stop() ); // stop each of them
+                                mediaRecorder.stream.getTracks().forEach(track => track.stop()); // stop each of them
                             } catch (err) {
 
                             }
@@ -354,41 +374,55 @@ function ChatRoom() {
                         <div className="audio-icon-container">
                             <MicIcon className="recording-mic-icon" onClick={() => {
                                 setIsAudioRec(false);
-                                    try {
-                                        setIsAudioRec(false);
-                                        mediaRecorder.stop();
-                                        console.log('recording stopped');
-                                        var currentdate = new Date();
-                                        var date_time = currentdate.getDate() + "/"
-                                            + (currentdate.getMonth() + 1) + "/"
-                                            + currentdate.getFullYear() + " "
-                                            + currentdate.getHours() + ":"
-                                            + currentdate.getMinutes() + ":"
-                                            + currentdate.getSeconds();
-                                        mediaRecorder.onstop = function (e) {
-                                            socket.emit('message-to-server', {
-                                                chunks: chunks,
-                                                user: name,
-                                                audioMsg: true,
-                                                color: color,
-                                                time: date_time
-                                            });
-                                            setAllMsg(() => [...allMsg, {
-                                                chunks: chunks,
-                                                user: name,
-                                                audioMsg: true,
-                                                time: date_time
-                                            }])                  
-                                            chunks = []; 
-                                            mediaRecorder.stream.getTracks().forEach( track => track.stop() ); // stop each of them
-                                            setAudioModal(false);
-                                        }
-                                    } catch (error) {
-                                        console.log('Some Error happened | No mediaRecorder found.');
+                                try {
+                                    setIsAudioRec(false);
+                                    mediaRecorder.stop();
+                                    console.log('recording stopped');
+                                    var currentdate = new Date();
+                                    var date_time = currentdate.getDate() + "/"
+                                        + (currentdate.getMonth() + 1) + "/"
+                                        + currentdate.getFullYear() + " "
+                                        + currentdate.getHours() + ":"
+                                        + currentdate.getMinutes() + ":"
+                                        + currentdate.getSeconds();
+                                    mediaRecorder.onstop = function (e) {
+                                        socket.emit('message-to-server', {
+                                            chunks: chunks,
+                                            user: name,
+                                            audioMsg: true,
+                                            color: color,
+                                            time: date_time
+                                        });
+                                        setAllMsg(() => [...allMsg, {
+                                            chunks: chunks,
+                                            user: name,
+                                            audioMsg: true,
+                                            time: date_time
+                                        }])
+                                        chunks = [];
+                                        mediaRecorder.stream.getTracks().forEach(track => track.stop()); // stop each of them
+                                        setAudioModal(false);
                                     }
-                                
+                                } catch (error) {
+                                    console.log('Some Error happened | No mediaRecorder found.');
+                                }
+
                             }} />
                         </div>
+                    </Modal>
+                    <Modal
+                        isOpen={passModalIsOpen}
+                        className="modal"
+                        contentLabel="Example Modal"
+                    >
+                        <form className="nameForm" onSubmit={passHandler}>
+                            <h4>Enter Password</h4>
+                            <input ref={inputRef} type="password" value={pass} onChange={(e) => {
+                                e.preventDefault();
+                                setPass(e.target.value);
+                            }} />
+                            <button type="submit">Join</button>
+                        </form>
                     </Modal>
 
                     <Modal
@@ -398,10 +432,10 @@ function ChatRoom() {
                     >
                         <form className="nameForm" onSubmit={nameHandler}>
                             <h4>Enter your name for others to identify</h4>
-                            <input ref={inputRef} type="text" value={name} onChange={(e) => { 
+                            <input ref={inputRef} type="text" value={name} onChange={(e) => {
                                 e.preventDefault();
-                                setName(e.target.value); 
-                                }} />
+                                setName(e.target.value);
+                            }} />
                             <button type="submit">Save</button>
                         </form>
                     </Modal>
@@ -410,7 +444,7 @@ function ChatRoom() {
                             <input ref={inputRef} type="text" onChange={(e) => {
                                 e.preventDefault();
                                 messageHandler(e);
-                                }} value={message} placeholder="Message..." />
+                            }} value={message} placeholder="Message" />
                             {
                                 (msgOrAudio == 'audio') ? (
                                     <MicIcon onClick={recordAudioModelPop} className="send-icon" />

@@ -1,0 +1,206 @@
+.Landing {
+    height: 100vh;
+    width: 100%;
+    background-color: rgb(17, 17, 17);
+}
+
+.button-group {
+    top: 25%;
+    left: 50%;
+    height: 170px;
+    display: flex;
+    padding: 5px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 330px;
+    transform: translate(-50%);
+    position: absolute;
+}
+
+.button-group > * {
+    width: 90%;
+    height: 45px;
+    margin-top: 20px;
+    font-size: 17px;
+    cursor: pointer;
+    background-color: greenyellow;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+}
+
+.button-group > *:hover {
+    opacity: 0.5;
+}
+
+.create-join-modal {
+    height: fit-content;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: black;
+    top: 15%;
+    left: 50%;    
+    transform: translate(-50%, 50%);
+    position: absolute;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.create-join-modal > * {
+    color: whitesmoke;
+}
+
+.slew-privacy {
+    display: flex;
+    border-radius: 5px;
+    height: fit-content;
+    align-items: center;
+    margin-bottom: 30px;
+    width: fit-content;
+    justify-content: space-around;
+}
+
+.slew-pass {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.slew-pass>input {
+    width: 300px;
+    height: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    outline: none;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.private-highlight {
+    background-color: red;
+    width: 100px;
+    cursor: pointer;
+    border-radius: 5px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.public {
+    width: 100px;
+    height: 35px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.private {
+    width: 100px;
+    height: 35px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.public-highlight {
+    background-color: blueviolet;
+    width: 100px;
+    height: 35px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.slew-name {
+    display: flex;
+    margin-top: 5px;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.create-join-form > button {
+    margin-bottom: 10px;
+    width: 100px;
+    height: 35px;
+    border-radius: 5px;
+    background-color: greenyellow;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+}
+
+.join-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+label {
+    margin-bottom: 10px;
+}
+
+.join-form > button {
+    margin-bottom: 10px;
+    width: 100px;
+    height: 35px;
+    border-radius: 5px;
+    background-color: greenyellow;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+}
+
+
+.join-form > button:hover {
+    opacity: 0.5;
+}
+
+.create-join-form > button:hover {
+    opacity: 0.5;
+}
+
+.slew-name > input {
+    width: 300px;
+    height: 20px;
+    outline: none;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.create-join-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 460px) {
+    .button-group {
+        width: 80%;
+    }
+}
