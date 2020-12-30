@@ -357,6 +357,9 @@ function ChatRoom() {
 
                     <Modal
                         isOpen={audioModal}
+                        style={{
+                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                        }}
                         className="audio-modal"
                         onRequestClose={() => {
                             setAudioModal(false);
@@ -412,6 +415,9 @@ function ChatRoom() {
                     </Modal>
                     <Modal
                         isOpen={passModalIsOpen}
+                        style={{
+                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                        }}
                         className="modal"
                         contentLabel="Example Modal"
                     >
@@ -427,6 +433,9 @@ function ChatRoom() {
 
                     <Modal
                         isOpen={modalIsOpen}
+                        style={{
+                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                        }}
                         className="modal"
                         contentLabel="Example Modal"
                     >

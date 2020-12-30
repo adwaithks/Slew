@@ -36,6 +36,9 @@ function Landing() {
         <div className="Landing">
             <Modal
                 isOpen={isOpen}
+                style={{
+                    overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                }}
                 className="create-join-modal"
                 onRequestClose={() => {
                     setIsOpen(false);
@@ -64,6 +67,9 @@ function Landing() {
             </Modal>
             <Modal
                 isOpen={joinIsOpen}
+                style={{
+                    overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                }}
                 className="create-join-modal"
                 onRequestClose={() => {
                     setJoinIsOpen(false);
