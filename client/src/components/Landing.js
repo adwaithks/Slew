@@ -46,14 +46,22 @@ function Landing() {
                 contentLabel="Example Modal"
             >
                 <form className="create-join-form" onSubmit={submitHandler}>
+                <div className="slew-privacy">
+                        <div onClick={() => { setPrivacy(true) }} className={privacy ? "private-highlight" : "private"}>Private</div>
+                        <div onClick={() => { setPrivacy(false) }} className={!privacy ? "public-highlight" : "public"}>Public</div>
+                    </div>
+                    {
+                        privacy ? (
                     <div className="slew-name">
                         <label htmlFor="slew-name">Slew Name</label>
                         <input placeholder="Slew Name" onChange={(e) => { setSlewName(e.target.value) }} value={slewName} type="text" />
                     </div>
-                    <div className="slew-privacy">
-                        <div onClick={() => { setPrivacy(true) }} className={privacy ? "private-highlight" : "private"}>Private</div>
-                        <div onClick={() => { setPrivacy(false) }} className={!privacy ? "public-highlight" : "public"}>Public</div>
-                    </div>
+                        ) : (
+                            null
+                        )
+                    }
+                    
+                    
                     {
                         (privacy) ? (
                             <div className="slew-pass">

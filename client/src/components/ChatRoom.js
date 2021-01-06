@@ -4,26 +4,38 @@ import SendIcon from '@material-ui/icons/Send';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Alert from '@material-ui/lab/Alert';
 import Modal from 'react-modal';
+import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
 import MicIcon from '@material-ui/icons/Mic';
+import MicOffIcon from '@material-ui/icons/MicOff';
+import VideocamOffIcon from '@material-ui/icons/VideocamOff';
+import FlipCameraIosIcon from '@material-ui/icons/FlipCameraIos';
 import './ChatRoom.css';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import CallEndIcon from '@material-ui/icons/CallEnd';
+import VideocamIcon from '@material-ui/icons/Videocam';
 import { socket } from '../socket';
-
+import Peer from 'peerjs';
 
 var temp = '';
 var mediaRecorder = null;
 var chunks = [];
 var online = true;
-
+var peer;
+var peerId;
+var call;
 
 
 function ChatRoom() {
     const inputRef = useRef(null);
+    const videoEl = useRef(null);
+    const peerVideoEl = useRef(null);
     const [isAudioRec, setIsAudioRec] = useState(false);
     const [users, setUsers] = useState([]);
-    const [usersExp, setUsersExp] = useState(true);
+    const [videoModalOpen, setVideoModalOpen] = useState(false);
+    const [usersExp, setUsersExp] = useState(false);
     const [roomName, setRoomName] = useState('');
+    const [micState, setMicState] = useState(false);
+    const [videoState, setVideoState] = useState(false);
+    const [stream, setStream] = useState();
     const [pass, setPass] = useState('');
     const [passModalIsOpen, setPassModalIsOpen] = useState(false);
     const [msgOrAudio, setMsgOrAudio] = useState('audio');
@@ -37,12 +49,14 @@ function ChatRoom() {
     const [snackOpen, setSnackOpen] = useState(false);
     const [message, setMessage] = useState('');
 
+
+
     useEffect(() => {
         requestNotifPerm();
         window.localStorage.removeItem('user');
         if (!window.localStorage.getItem('user')) {
             setModalIsOpen(true);
-            inputRef.current.focus();
+            //inputRef.current.focus();
         }
         else {
             var roomName = window.location.href.split('/')[4];
@@ -125,9 +139,8 @@ function ChatRoom() {
         });
     }
 
-
     const connectClient = () => {
-        inputRef.current.focus();
+        //inputRef.current.focus();
         document.addEventListener("visibilitychange", event => {
             if (document.visibilityState == "visible") {
                 console.log('online');
@@ -158,9 +171,26 @@ function ChatRoom() {
             setModalIsOpen(false);
             setPassModalIsOpen(false);
             setColor(data.color);
+            peerId = data.peerId;
+            peer = new Peer(peerId);
+
+            peer.on('call', (call) => {
+                console.log('incoming call...');
+                setVideoModalOpen(true);
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+                    setStream(stream);
+                    call.answer(stream);
+                    console.log(stream);
+                    videoEl.current.srcObject = stream;
+                    call.on('stream', (remoteStream) => {
+                        peerVideoEl.current.srcObject = remoteStream;
+                    });
+                }).catch(err => {
+                    console.error('Failed to get local stream', err);
+                });
+            });
         });
 
-        // alert others that a new person has joined
         socket.on('welcome-message', (data) => {
             const temp = {
                 newComer: true,
@@ -169,7 +199,6 @@ function ChatRoom() {
             setAllMsg((allMsg) => [...allMsg, temp]);
         });
 
-        // user exit followup
         socket.on('user-exit', (data) => {
             const exitmsg = {
                 exitmsg: true,
@@ -178,18 +207,29 @@ function ChatRoom() {
             setAllMsg((allMsg) => [...allMsg, exitmsg]);
         });
 
-        // get connected clients in room
         socket.on('connected-clients', (connectedClients) => {
             setUsers(connectedClients);
         });
 
-        // message coming from server
         socket.on('message-from-server', (msg) => {
             setAllMsg((allMsg) => [...allMsg, msg]);
             displayNotification(msg);
         });
     }
 
+    const videoCall = (id) => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+            console.log('callingggg ' + id + ' ........');
+            call = peer.call(id, stream);
+            setStream(stream);
+            videoEl.current.srcObject = stream;
+            call.on('stream', (remoteStream) => {
+                peerVideoEl.current.srcObject = remoteStream;
+            });
+        }).catch(err => {
+            console.log('Failed to get local stream', err);
+        });
+    }
 
 
     const messageHandler = (e) => {
@@ -241,8 +281,8 @@ function ChatRoom() {
 
     const copyShareHandler = () => {
         navigator.clipboard.writeText(window.location.href).then(() => {
-            //setSnackMsg('Link Copied');
-            //setSnackOpen(true);
+            setSnackMsg('Link Copied to clipboard');
+            setSnackOpen(true);
             console.log('copied');
         }, () => {
             console.log('could not copy');
@@ -270,6 +310,7 @@ function ChatRoom() {
                     }
                 }).catch(function (err) {
                     console.log('The following getUserMedia error occurred: ' + err);
+                    //if (err === 'Permission denied') {recordAudio();}
                 }
                 );
         } else {
@@ -282,6 +323,8 @@ function ChatRoom() {
         socket.emit('passcode', pass);
     }
 
+
+
     return (
         <div className="Chatroom">
             <Snackbar className="snackbar" open={snackOpen} onClose={() => { setSnackOpen(false) }} autoHideDuration={3000}>
@@ -292,7 +335,7 @@ function ChatRoom() {
             <div className="headWindow">
                 <div className="userToggle">
                     {
-                        usersExp ? <ChevronLeftIcon className="chevron-icon" onClick={() => { setUsersExp(false) }} /> : <ChevronRightIcon className="chevron-icon" onClick={() => { setUsersExp(true) }} />
+                        usersExp ? <PeopleAltIcon className="chevron-icon" onClick={() => { setUsersExp(false) }} /> : <PeopleAltIcon className="chevron-icon" onClick={() => { setUsersExp(true) }} />
                     }
                 </div>
                 <div>
@@ -303,9 +346,18 @@ function ChatRoom() {
                     {
                         users.map(each => (
                             <div className="user">
-                                <h4>{each}</h4>
-                                <div className="online">
-                                </div>
+                                <h4>{each.user}</h4>
+                                {
+                                    each.peerId != peerId ? (
+                                        <VideocamIcon className="videocam-icon" onClick={() => {
+                                            videoCall(each.peerId);
+                                            setVideoModalOpen(true);
+                                            setVideoState(true);
+                                            setMicState(true);
+                                        }} />
+                                    ) : null
+                                }
+
                             </div>
                         ))
                     }
@@ -432,6 +484,71 @@ function ChatRoom() {
                     </Modal>
 
                     <Modal
+                        isOpen={videoModalOpen}
+                        onRequestClose={() => { setVideoModalOpen(false) }}
+                        style={{
+                            overlay: {
+                                backgroundColor: 'rgb(27, 27, 27) '
+                            }
+                        }}
+                        className="video-modal"
+                        contentLabel="Example Modal"
+                    >
+                        <div className="videoCallContainer">
+                            <video className="peer-video" playsInline ref={peerVideoEl} autoPlay></video>
+                        </div>
+                        <div className="video-call-controls">
+                            <div className="test"></div>
+                            <div className="icon-container">
+                                <div className="iconContainer">
+                                    {
+                                        micState ? (
+
+                                            <MicOffIcon onClick={() => {
+                                                stream.enabled = true;
+                                                setMicState(!micState)
+                                            }} />
+                                        ) : (
+                                                <MicIcon onClick={() => {
+                                                    stream.enabled = false;
+                                                    setMicState(!micState)
+                                                }} />
+                                            )
+                                    }
+                                </div>
+                                <div className="callend-iconContainer">
+                                    <CallEndIcon onClick={() => {
+                                        const tracks = stream.getTracks();
+
+                                        tracks.forEach(function (track) {
+                                            track.stop();
+                                        });
+                                        setVideoModalOpen(false);
+                                    }} />
+                                </div>
+                                <div className="iconContainer">
+                                    {
+                                        videoState ? (
+                                            <VideocamOffIcon onClick={() => {
+                                                stream.enabled = false;
+                                                setVideoState(!videoState)
+                                            }} />
+                                        ) : (
+                                                <VideocamIcon onClick={() => {
+                                                    stream.enabled = false;
+                                                    setVideoState(!videoState)
+                                                }} />
+                                            )
+                                    }
+                                </div>
+                            </div>
+                            <div className="user-video-container">
+                                <video className="user-video" playsInline ref={videoEl} autoPlay></video>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <Modal
                         isOpen={modalIsOpen}
                         style={{
                             overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
@@ -454,6 +571,7 @@ function ChatRoom() {
                                 e.preventDefault();
                                 messageHandler(e);
                             }} value={message} placeholder="Message" />
+
                             {
                                 (msgOrAudio == 'audio') ? (
                                     <MicIcon onClick={recordAudioModelPop} className="send-icon" />

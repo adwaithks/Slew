@@ -3,22 +3,18 @@ const app = express();
 const server = require('http').createServer(app);
 const path = require('path');
 const io = require('socket.io')(server);
-//const morgan = require('morgan');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 
 var privateRooms = [];
 
-//app.use(morgan('dev'));
 app.use(cors());
-
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
-})
+});
 
 io.on('connection', socket => {
-
     socket.on('create-private-room', data => {
         var uuid = uuidv4();
         const obj = {
@@ -38,7 +34,10 @@ io.on('connection', socket => {
                     var clients = io.sockets.sockets;
                     clients.forEach(element => {
                         if (element.roomName == socket.roomName) {
-                            connectedClients.push(element.user)
+                            connectedClients.push({
+                                user: element.user,
+                                peerId: element.peerId
+                            });
                         }
                     });
             
@@ -65,10 +64,19 @@ io.on('connection', socket => {
         var connectedClients = [];
         var colors = ['red', 'green', 'violet', 'pink', 'orange', 'yellow']
         var color = colors[Math.floor(Math.random() * colors.length)];
-
+        console.log('hi');
+        var peerId = uuidv4();
+        socket.peerId = peerId;
         socket.roomName = data.roomName;
         socket.user = data.user;
         socket.color = color;
+        var test = {
+            peerId: socket.peerId,
+            room: socket.roomName,
+            username: socket.user,
+            color: socket.color
+        }
+        console.log(test);
         for(var i=0; i < privateRooms.length; i++) {
             if (privateRooms[i].slewName == socket.roomName) {
                 private = true;
@@ -82,14 +90,18 @@ io.on('connection', socket => {
             var clients = io.sockets.sockets;
             clients.forEach(element => {
                 if (element.roomName == socket.roomName) {
-                    connectedClients.push(element.user)
+                    connectedClients.push({
+                        user: element.user,
+                        peerId: element.peerId
+                    });
                 }
             });
     
             socket.emit('welcome-self-message', {
                 user: socket.user,
                 roomName: socket.roomName,
-                color: socket.color
+                color: socket.color,
+                peerId: socket.peerId
             });
     
             io.in(socket.roomName).emit('connected-clients', connectedClients);
@@ -107,12 +119,17 @@ io.on('connection', socket => {
     });
 
 
+
+
     socket.on('disconnect', () => {
         var connectedClients = [];
         var clients = io.sockets.sockets;
         clients.forEach(element => {
             if (element.roomName == socket.roomName) {
-                connectedClients.push(element.user)
+                connectedClients.push({
+                    user: element.user,
+                    peerId: element.peerId
+                });
             }
         });
         io.in(socket.roomName).emit('connected-clients', connectedClients);
@@ -129,6 +146,8 @@ io.on('connection', socket => {
         console.log('user disconnected !');
     });
 });
+
+
 
 var port = process.env.PORT || 5000;
 
