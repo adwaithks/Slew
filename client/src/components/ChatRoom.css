@@ -55,7 +55,7 @@
 }
 
 .users {
-    width: 40%;
+    width: 30%;
     display: flex;
     transition: width 2s ease;
     flex-direction: column;
@@ -112,6 +112,7 @@
 .callend-iconContainer {
     background-color: red;
     border-radius: 50%;
+    cursor: pointer;
     width: 50px;
     height: 50px;
     display: flex;
@@ -593,7 +594,9 @@ audio::-webkit-media-controls-panel{
         width: 95%;
     }
 
-    
+    .users {
+        width: 60%;
+    }
     
 
     

@@ -44,7 +44,8 @@ io.on('connection', socket => {
                     socket.emit('welcome-self-message', {
                         user: socket.user,
                         roomName: socket.roomName,
-                        color: socket.color
+                        color: socket.color,
+                        peerId: socket.peerId
                     });
             
                     io.in(socket.roomName).emit('connected-clients', connectedClients);

@@ -177,10 +177,11 @@ function ChatRoom() {
             peer.on('call', (call) => {
                 console.log('incoming call...');
                 setVideoModalOpen(true);
+                setVideoState(true);
+                setMicState(true);
                 navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
                     setStream(stream);
                     call.answer(stream);
-                    console.log(stream);
                     videoEl.current.srcObject = stream;
                     call.on('stream', (remoteStream) => {
                         peerVideoEl.current.srcObject = remoteStream;
@@ -503,16 +504,16 @@ function ChatRoom() {
                                 <div className="iconContainer">
                                     {
                                         micState ? (
-
+<MicIcon onClick={() => {
+                                                    stream.enabled = false;
+                                                    setMicState(!micState)
+                                                }} />
+                                            
+                                        ) : (
                                             <MicOffIcon onClick={() => {
                                                 stream.enabled = true;
                                                 setMicState(!micState)
                                             }} />
-                                        ) : (
-                                                <MicIcon onClick={() => {
-                                                    stream.enabled = false;
-                                                    setMicState(!micState)
-                                                }} />
                                             )
                                     }
                                 </div>
@@ -529,13 +530,23 @@ function ChatRoom() {
                                 <div className="iconContainer">
                                     {
                                         videoState ? (
-                                            <VideocamOffIcon onClick={() => {
-                                                stream.enabled = false;
+                                            <VideocamIcon onClick={() => {
+                                                const tracks = stream.getTracks();
+
+                                                tracks.forEach(function (track) {
+                                                    track.enabled = false;
+                                                });
                                                 setVideoState(!videoState)
                                             }} />
                                         ) : (
-                                                <VideocamIcon onClick={() => {
-                                                    stream.enabled = false;
+                                                
+
+                                                <VideocamOffIcon onClick={() => {
+                                                    const tracks = stream.getTracks();
+    
+                                                    tracks.forEach(function (track) {
+                                                        track.enabled = true;
+                                                    });
                                                     setVideoState(!videoState)
                                                 }} />
                                             )
