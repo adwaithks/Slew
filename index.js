@@ -25,6 +25,24 @@ io.on('connection', socket => {
         privateRooms.push(obj);
     });
 
+    socket.on('videocall-reject', data => {
+        var clients = io.sockets.sockets;
+        clients.forEach(each => {
+		if (data == each.peerId) {
+			io.to(each.id).emit('videocall-rejected', socket.user);
+		}
+	});
+    });
+
+    socket.on('videocall-peer', data => {
+        var clients = io.sockets.sockets;
+        clients.forEach(each => {
+		if (data == each.peerId) {
+			io.to(each.id).emit('incoming-videocall', socket.user);
+		}
+	});
+    });
+
     socket.on('passcode', (pass) => {
         for(var i=0; i < privateRooms.length; i++) {
             if (privateRooms[i].slewName == socket.roomName) {
@@ -118,9 +136,6 @@ io.on('connection', socket => {
     socket.on('message-to-server', (msg) => {
         socket.broadcast.to(socket.roomName).emit('message-from-server', msg);
     });
-
-
-
 
     socket.on('disconnect', () => {
         var connectedClients = [];

@@ -205,10 +205,27 @@
     width: 100% !important;
 }
 
+.incoming-call-modal {
+    position: absolute;
+    border-radius: 5px;
+    z-index: 4000;
+    width: 320px;
+    border: none;
+    outline: none;
+    background-color: rgb(255, 255, 255);
+    text-align: center;
+    color: black;
+    height: fit-content;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
 
 .modal {
     position: absolute;
     border-radius: 5px;
+    z-index: 2000;
     width: 320px;
     border: none;
     outline: none;

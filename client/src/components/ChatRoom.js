@@ -8,7 +8,6 @@ import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
 import VideocamOffIcon from '@material-ui/icons/VideocamOff';
-import FlipCameraIosIcon from '@material-ui/icons/FlipCameraIos';
 import './ChatRoom.css';
 import CallEndIcon from '@material-ui/icons/CallEnd';
 import VideocamIcon from '@material-ui/icons/Videocam';
@@ -22,6 +21,7 @@ var online = true;
 var peer;
 var peerId;
 var call;
+var otherPeer;
 
 
 function ChatRoom() {
@@ -33,15 +33,17 @@ function ChatRoom() {
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [usersExp, setUsersExp] = useState(false);
     const [roomName, setRoomName] = useState('');
+    const [acceptVideoCallModal, setAcceptVideoCallModal] = useState(false);
     const [micState, setMicState] = useState(false);
     const [videoState, setVideoState] = useState(false);
-    const [stream, setStream] = useState();
+    const [streamState, setStream] = useState();
     const [pass, setPass] = useState('');
     const [passModalIsOpen, setPassModalIsOpen] = useState(false);
     const [msgOrAudio, setMsgOrAudio] = useState('audio');
     const [audioModal, setAudioModal] = useState(false);
     const [datetime, setDateTime] = useState('');
     const [color, setColor] = useState('');
+    const [otherPeerName, setOtherPeerName] = useState('');
     const [name, setName] = useState('');
     const [allMsg, setAllMsg] = useState([]);
     const [snackMsg, setSnackMsg] = useState('');
@@ -175,22 +177,40 @@ function ChatRoom() {
             peer = new Peer(peerId);
 
             peer.on('call', (call) => {
-                console.log('incoming call...');
+                call = call;
+
+                otherPeer = call.peer;
+                console.log(call);
                 setVideoModalOpen(true);
-                setVideoState(true);
-                setMicState(true);
                 navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+                    peerVideoEl.current.srcObject = stream;
                     setStream(stream);
-                    call.answer(stream);
-                    videoEl.current.srcObject = stream;
-                    call.on('stream', (remoteStream) => {
-                        peerVideoEl.current.srcObject = remoteStream;
-                    });
+                    window.focus();
+                    var a = window.prompt(`Incoming VideoCall from ${otherPeerName} | Click OK to accept | Click Cancel to Reject ?`);
+                    console.log('value of a:  ' + a);
+                    if (a === null) {
+                        socket.emit('videocall-reject', call.peer);
+                        stream.getTracks().forEach(track => {
+                            track.stop();
+                            setVideoModalOpen(false);
+                        });
+                    } else if (a === "" || a.toLowerCase() == 'accept') {
+                        setVideoState(!videoState);
+                        setMicState(!micState);
+                        call.answer(stream);
+                        videoEl.current.srcObject = stream;
+                        call.on('stream', (remoteStream) => {
+                            peerVideoEl.current.srcObject = remoteStream;
+                        });
+                    }
+
                 }).catch(err => {
                     console.error('Failed to get local stream', err);
                 });
+
             });
         });
+
 
         socket.on('welcome-message', (data) => {
             const temp = {
@@ -199,6 +219,7 @@ function ChatRoom() {
             }
             setAllMsg((allMsg) => [...allMsg, temp]);
         });
+
 
         socket.on('user-exit', (data) => {
             const exitmsg = {
@@ -218,20 +239,34 @@ function ChatRoom() {
         });
     }
 
+
+
     const videoCall = (id) => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+            setStream(stream);
             console.log('callingggg ' + id + ' ........');
             call = peer.call(id, stream);
-            setStream(stream);
-            videoEl.current.srcObject = stream;
+            socket.emit('videocall-peer', id);
+            peerVideoEl.current.srcObject = stream;
             call.on('stream', (remoteStream) => {
                 peerVideoEl.current.srcObject = remoteStream;
+                videoEl.current.srcObject = stream;
+            });
+            socket.on('videocall-rejected', (data) => {
+                closeVideo(stream, data);
             });
         }).catch(err => {
             console.log('Failed to get local stream', err);
         });
     }
 
+    const closeVideo = (st, data) => {
+        st.getTracks().forEach(track => {
+            track.stop();
+        });
+        setVideoModalOpen(false);
+        alert(data + ' rejected the call!');
+    }
 
     const messageHandler = (e) => {
         setMessage(e.target.value);
@@ -485,6 +520,30 @@ function ChatRoom() {
                     </Modal>
 
                     <Modal
+                        isOpen={acceptVideoCallModal}
+                        style={{
+                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
+                        }}
+                        className="incoming-call-modal"
+                        contentLabel="Example Modal"
+                    >
+                        <h2 onClick={() => {
+                            setAcceptVideoCallModal(false);
+                            setVideoState(false);
+                            setMicState(false);
+                        }}>Accept</h2>
+                        <h2 onClick={() => {
+                            setAcceptVideoCallModal(false);
+                            const tracks = streamState.getTracks();
+
+                            tracks.forEach(function (track) {
+                                track.stop();
+                            });
+                        }}>Reject</h2>
+                    </Modal>
+
+
+                    <Modal
                         isOpen={videoModalOpen}
                         onRequestClose={() => { setVideoModalOpen(false) }}
                         style={{
@@ -496,7 +555,7 @@ function ChatRoom() {
                         contentLabel="Example Modal"
                     >
                         <div className="videoCallContainer">
-                            <video className="peer-video" playsInline ref={peerVideoEl} autoPlay></video>
+                            <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
                         </div>
                         <div className="video-call-controls">
                             <div className="test"></div>
@@ -504,23 +563,33 @@ function ChatRoom() {
                                 <div className="iconContainer">
                                     {
                                         micState ? (
-<MicIcon onClick={() => {
-                                                    stream.enabled = false;
-                                                    setMicState(!micState)
-                                                }} />
-                                            
-                                        ) : (
-                                            <MicOffIcon onClick={() => {
-                                                stream.enabled = true;
+                                            <MicIcon onClick={() => {
+                                                const tracks = streamState.getTracks();
+
+                                                tracks.forEach(function (track) {
+                                                    if (track.kind == 'audio')
+                                                        track.enabled = false;
+                                                });
                                                 setMicState(!micState)
                                             }} />
+
+                                        ) : (
+                                                <MicOffIcon onClick={() => {
+                                                    const tracks = streamState.getTracks();
+
+                                                    tracks.forEach(function (track) {
+                                                        if (track.kind == 'audio')
+                                                            track.enabled = true;
+                                                    });
+                                                    setMicState(!micState)
+                                                }} />
                                             )
                                     }
                                 </div>
                                 <div className="callend-iconContainer">
                                     <CallEndIcon onClick={() => {
-                                        const tracks = stream.getTracks();
-
+                                        const tracks = streamState.getTracks();
+                                        socket.emit('videocall-reject', otherPeer);
                                         tracks.forEach(function (track) {
                                             track.stop();
                                         });
@@ -531,7 +600,7 @@ function ChatRoom() {
                                     {
                                         videoState ? (
                                             <VideocamIcon onClick={() => {
-                                                const tracks = stream.getTracks();
+                                                const tracks = streamState.getTracks();
 
                                                 tracks.forEach(function (track) {
                                                     track.enabled = false;
@@ -539,11 +608,9 @@ function ChatRoom() {
                                                 setVideoState(!videoState)
                                             }} />
                                         ) : (
-                                                
-
                                                 <VideocamOffIcon onClick={() => {
-                                                    const tracks = stream.getTracks();
-    
+                                                    const tracks = streamState.getTracks();
+
                                                     tracks.forEach(function (track) {
                                                         track.enabled = true;
                                                     });
@@ -554,7 +621,7 @@ function ChatRoom() {
                                 </div>
                             </div>
                             <div className="user-video-container">
-                                <video className="user-video" playsInline ref={videoEl} autoPlay></video>
+                                <video className="user-video" muted playsInline ref={videoEl} autoPlay></video>
                             </div>
                         </div>
                     </Modal>
