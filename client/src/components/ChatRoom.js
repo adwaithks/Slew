@@ -22,6 +22,7 @@ var peer;
 var peerId;
 var call;
 var otherPeer;
+var incomingVideocallUsername;
 
 
 function ChatRoom() {
@@ -43,7 +44,6 @@ function ChatRoom() {
     const [audioModal, setAudioModal] = useState(false);
     const [datetime, setDateTime] = useState('');
     const [color, setColor] = useState('');
-    const [otherPeerName, setOtherPeerName] = useState('');
     const [name, setName] = useState('');
     const [allMsg, setAllMsg] = useState([]);
     const [snackMsg, setSnackMsg] = useState('');
@@ -55,15 +55,15 @@ function ChatRoom() {
 
     useEffect(() => {
         requestNotifPerm();
-        window.localStorage.removeItem('user');
+        //window.localStorage.removeItem('user');
         if (!window.localStorage.getItem('user')) {
             setModalIsOpen(true);
             //inputRef.current.focus();
         }
         else {
             var roomName = window.location.href.split('/')[4];
-            var user = window.localStorage.getItem('user');
             setRoomName(roomName);
+            var user = window.localStorage.getItem('user');
 
             // join room
             socket.emit('join-room', {
@@ -76,14 +76,54 @@ function ChatRoom() {
                 setPassModalIsOpen(true);
             });
 
+            socket.on('incoming-videocall', data => {
+                incomingVideocallUsername = data;
+            })
+
             // alert self you have joined room
             socket.on('welcome-self-message', data => {
                 setModalIsOpen(false);
                 setPassModalIsOpen(false);
                 setColor(data.color);
+                peerId = data.peerId;
+                peer = new Peer(peerId);
+                peer.on('call', (call) => {
+                    call = call;
+                    otherPeer = call.peer;
+                    console.log(call);
+                    setVideoModalOpen(true);
+                    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+                        peerVideoEl.current.srcObject = stream;
+                        setStream(stream);
+                        window.focus();
+                        var a = window.prompt(`Incoming VideoCall from ${incomingVideocallUsername} | Click OK to accept | Click Cancel to Reject ?`);
+                        console.log('value of a:  ' + a);
+                        if (a === null) {
+                            socket.emit('videocall-reject', call.peer);
+                            stream.getTracks().forEach(track => {
+                                track.stop();
+                                setVideoModalOpen(false);
+                            });
+                        } else if (a === "" || a.toLowerCase() == 'accept') {
+                            setVideoState(!videoState);
+                            setMicState(!micState);
+                            call.answer(stream);
+                            videoEl.current.srcObject = stream;
+                            call.on('stream', (remoteStream) => {
+                                peerVideoEl.current.srcObject = remoteStream;
+                            });
+                        }
+                        socket.on('videocall-rejected', (data) => {
+                            closeVideo(stream, data);
+                        });
+                    }).catch(err => {
+                        console.error('Failed to get local stream', err);
+                    });
+
+                });
             });
 
-            // alert others that a new person has joined
+
             socket.on('welcome-message', (data) => {
                 const temp = {
                     newComer: true,
@@ -92,7 +132,7 @@ function ChatRoom() {
                 setAllMsg((allMsg) => [...allMsg, temp]);
             });
 
-            // user exit followup
+
             socket.on('user-exit', (data) => {
                 const exitmsg = {
                     exitmsg: true,
@@ -101,16 +141,14 @@ function ChatRoom() {
                 setAllMsg((allMsg) => [...allMsg, exitmsg]);
             });
 
-            // get connected clients in room
             socket.on('connected-clients', (connectedClients) => {
                 setUsers(connectedClients);
             });
 
-            // message coming from server
             socket.on('message-from-server', (msg) => {
                 setAllMsg((allMsg) => [...allMsg, msg]);
                 displayNotification(msg);
-            })
+            });
 
             return () => {
                 socket.disconnect();
@@ -168,6 +206,10 @@ function ChatRoom() {
             setPassModalIsOpen(true);
         });
 
+        socket.on('incoming-videocall', data => {
+            incomingVideocallUsername = data;
+        })
+
         // alert self you have joined room
         socket.on('welcome-self-message', data => {
             setModalIsOpen(false);
@@ -175,10 +217,8 @@ function ChatRoom() {
             setColor(data.color);
             peerId = data.peerId;
             peer = new Peer(peerId);
-
             peer.on('call', (call) => {
                 call = call;
-
                 otherPeer = call.peer;
                 console.log(call);
                 setVideoModalOpen(true);
@@ -186,7 +226,7 @@ function ChatRoom() {
                     peerVideoEl.current.srcObject = stream;
                     setStream(stream);
                     window.focus();
-                    var a = window.prompt(`Incoming VideoCall from ${otherPeerName} | Click OK to accept | Click Cancel to Reject ?`);
+                    var a = window.prompt(`Incoming VideoCall from ${incomingVideocallUsername} | Click OK to accept | Click Cancel to Reject ?`);
                     console.log('value of a:  ' + a);
                     if (a === null) {
                         socket.emit('videocall-reject', call.peer);
@@ -203,7 +243,9 @@ function ChatRoom() {
                             peerVideoEl.current.srcObject = remoteStream;
                         });
                     }
-
+                    socket.on('videocall-rejected', (data) => {
+                        closeVideo(stream, data);
+                    });
                 }).catch(err => {
                     console.error('Failed to get local stream', err);
                 });
@@ -242,11 +284,12 @@ function ChatRoom() {
 
 
     const videoCall = (id) => {
+        socket.emit('videocall-peer', id);
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
             setStream(stream);
             console.log('callingggg ' + id + ' ........');
             call = peer.call(id, stream);
-            socket.emit('videocall-peer', id);
+            otherPeer = id;
             peerVideoEl.current.srcObject = stream;
             call.on('stream', (remoteStream) => {
                 peerVideoEl.current.srcObject = remoteStream;
@@ -265,7 +308,7 @@ function ChatRoom() {
             track.stop();
         });
         setVideoModalOpen(false);
-        alert(data + ' rejected the call!');
+        alert(data + ' ended the call!');
     }
 
     const messageHandler = (e) => {
@@ -548,7 +591,7 @@ function ChatRoom() {
                         onRequestClose={() => { setVideoModalOpen(false) }}
                         style={{
                             overlay: {
-                                backgroundColor: 'rgb(27, 27, 27) '
+                                backgroundColor: 'rgb(27, 27, 27)'
                             }
                         }}
                         className="video-modal"

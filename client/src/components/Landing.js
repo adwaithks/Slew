@@ -14,6 +14,7 @@ function Landing() {
 
     const submitHandler = (e) => {
         e.preventDefault();
+        window.localStorage.removeItem('user');
         if (privacy == false) {
             var id = uuidv4();
             window.location.href = '/room/' + id;
@@ -28,6 +29,7 @@ function Landing() {
 
     const joinHandler = (e) => {
         e.preventDefault();
+        window.localStorage.removeItem('user');
         window.location.href = '/room/' + slewName
     }
 

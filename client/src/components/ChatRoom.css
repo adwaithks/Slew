@@ -280,6 +280,22 @@
     background-color: greenyellow;
 }
 
+.incoming-video-call {
+    position: absolute;
+    background-color: black;
+    color: white;
+    z-index: 4000;
+    left: 50%;
+    transform: translate(-50%);
+    top: 25%;
+    height: 300px;
+    width: 300px;
+}
+
+.incoming-video-call > h2 {
+    margin-bottom: 100px;
+}
+
 .newComer {
     width: 90%;
     margin-left: auto;
@@ -289,7 +305,7 @@
     justify-content: center;
     align-items: center;
     background-color: rgb(153, 255, 0);
-    height: 50px;
+    height: fit-content;
     border-radius: 3px;
     text-align: center;
 }
