@@ -109,6 +109,22 @@
     object-fit: cover;
 }
 
+.callendincoming-iconContainer {
+    background-color: red;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 50px;
+    animation: pulse 1.2s infinite;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.callendincoming-iconContainer>* {
+    color: white;
+}
+
 .callend-iconContainer {
     background-color: red;
     border-radius: 50%;
@@ -118,6 +134,40 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.callaccept-iconContainer {
+    background-color: rgb(0, 216, 29);
+    border-radius: 50%;
+    cursor: pointer;
+    width: 50px;
+    animation: pulse2 1.2s infinite;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes pulse2 {
+	0% {
+		transform: scale(0.90);
+		box-shadow: 0 0 0 0 rgb(0, 0, 0);
+	}
+
+	70% {
+		transform: scale(1);
+		box-shadow: 0 0 0 10 rgb(0, 0, 0);
+	}
+
+	100% {
+		transform: scale(0.90);
+		box-shadow: 0 0 0 0 rgb(0, 0, 0);
+	}
+}
+
+
+.callaccept-iconContainer > * {
+    color: white;
 }
 
 .callend-iconContainer>* {
@@ -136,14 +186,30 @@
     z-index: 2000;
 }
 
+.video-callincoming-controls {
+    width: 50%;
+    height: 120px;
+    align-items: center;
+    display: flex;
+    justify-content: space-evenly;
+    position: absolute;
+    bottom: 0;
+    margin-top: 200px !important;
+    z-index: 2000;
+}
+
 .icon-container {
-    background-color: white;
     display: flex;
     width: 350px;
     height: 50px;
+    background-color: rgb(243, 243, 243);
     border-radius: 20px;
     justify-content: space-evenly;
     align-items: center;
+}
+
+.icon-container > * {
+    font-size: 30px !important;
 }
 
 .iconContainer {
@@ -530,6 +596,7 @@ audio::-webkit-media-controls-panel{
 		box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
 	}
 }
+
 
 .notrecording-mic-icon {
     color: rgb(156, 255, 8) !important;

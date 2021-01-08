@@ -5,6 +5,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Alert from '@material-ui/lab/Alert';
 import Modal from 'react-modal';
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
+import PhoneIcon from '@material-ui/icons/Phone';
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
 import VideocamOffIcon from '@material-ui/icons/VideocamOff';
@@ -30,11 +31,12 @@ function ChatRoom() {
     const videoEl = useRef(null);
     const peerVideoEl = useRef(null);
     const [isAudioRec, setIsAudioRec] = useState(false);
+    const [videoCalling, setVideoCalling] = useState('');
+    const [callState, setCallState] = useState({})
     const [users, setUsers] = useState([]);
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [usersExp, setUsersExp] = useState(false);
     const [roomName, setRoomName] = useState('');
-    const [acceptVideoCallModal, setAcceptVideoCallModal] = useState(false);
     const [micState, setMicState] = useState(false);
     const [videoState, setVideoState] = useState(false);
     const [streamState, setStream] = useState();
@@ -89,30 +91,14 @@ function ChatRoom() {
                 peer = new Peer(peerId);
                 peer.on('call', (call) => {
                     call = call;
+                    setCallState(call);
                     otherPeer = call.peer;
                     console.log(call);
+                    setVideoCalling('incoming');
                     setVideoModalOpen(true);
                     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
                         peerVideoEl.current.srcObject = stream;
                         setStream(stream);
-                        window.focus();
-                        var a = window.prompt(`Incoming VideoCall from ${incomingVideocallUsername} | Click OK to accept | Click Cancel to Reject ?`);
-                        console.log('value of a:  ' + a);
-                        if (a === null) {
-                            socket.emit('videocall-reject', call.peer);
-                            stream.getTracks().forEach(track => {
-                                track.stop();
-                                setVideoModalOpen(false);
-                            });
-                        } else if (a === "" || a.toLowerCase() == 'accept') {
-                            setVideoState(!videoState);
-                            setMicState(!micState);
-                            call.answer(stream);
-                            videoEl.current.srcObject = stream;
-                            call.on('stream', (remoteStream) => {
-                                peerVideoEl.current.srcObject = remoteStream;
-                            });
-                        }
                         socket.on('videocall-rejected', (data) => {
                             closeVideo(stream, data);
                         });
@@ -219,30 +205,14 @@ function ChatRoom() {
             peer = new Peer(peerId);
             peer.on('call', (call) => {
                 call = call;
+                setCallState(call);
                 otherPeer = call.peer;
                 console.log(call);
+                setVideoCalling('incoming');
                 setVideoModalOpen(true);
                 navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
                     peerVideoEl.current.srcObject = stream;
                     setStream(stream);
-                    window.focus();
-                    var a = window.prompt(`Incoming VideoCall from ${incomingVideocallUsername} | Click OK to accept | Click Cancel to Reject ?`);
-                    console.log('value of a:  ' + a);
-                    if (a === null) {
-                        socket.emit('videocall-reject', call.peer);
-                        stream.getTracks().forEach(track => {
-                            track.stop();
-                            setVideoModalOpen(false);
-                        });
-                    } else if (a === "" || a.toLowerCase() == 'accept') {
-                        setVideoState(!videoState);
-                        setMicState(!micState);
-                        call.answer(stream);
-                        videoEl.current.srcObject = stream;
-                        call.on('stream', (remoteStream) => {
-                            peerVideoEl.current.srcObject = remoteStream;
-                        });
-                    }
                     socket.on('videocall-rejected', (data) => {
                         closeVideo(stream, data);
                     });
@@ -563,30 +533,6 @@ function ChatRoom() {
                     </Modal>
 
                     <Modal
-                        isOpen={acceptVideoCallModal}
-                        style={{
-                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
-                        }}
-                        className="incoming-call-modal"
-                        contentLabel="Example Modal"
-                    >
-                        <h2 onClick={() => {
-                            setAcceptVideoCallModal(false);
-                            setVideoState(false);
-                            setMicState(false);
-                        }}>Accept</h2>
-                        <h2 onClick={() => {
-                            setAcceptVideoCallModal(false);
-                            const tracks = streamState.getTracks();
-
-                            tracks.forEach(function (track) {
-                                track.stop();
-                            });
-                        }}>Reject</h2>
-                    </Modal>
-
-
-                    <Modal
                         isOpen={videoModalOpen}
                         onRequestClose={() => { setVideoModalOpen(false) }}
                         style={{
@@ -597,76 +543,122 @@ function ChatRoom() {
                         className="video-modal"
                         contentLabel="Example Modal"
                     >
-                        <div className="videoCallContainer">
-                            <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
-                        </div>
-                        <div className="video-call-controls">
-                            <div className="test"></div>
-                            <div className="icon-container">
-                                <div className="iconContainer">
-                                    {
-                                        micState ? (
-                                            <MicIcon onClick={() => {
-                                                const tracks = streamState.getTracks();
+                        {
+                            videoCalling == 'incoming' ? (
+                                <>
+                                    <div className="videoCallContainer">
+                                        <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
+                                    </div>
+                                    <h2 style={{
+                                        color: 'white',
+                                        position: 'absolute',
+                                        zIndex: '4500',
+                                        left: '40%',
+                                        top: '80%',
+                                        translate: 'transform(-50%)'
+                                    }}>Incoming Video call from {incomingVideocallUsername}</h2>
+                                    <div className="video-callincoming-controls">
+                                        <div className="callaccept-iconContainer" onClick={() => {
+                                            setVideoCalling('');
+                                            setVideoState(!videoState);
+                                            setMicState(!micState);
+                                            callState.answer(streamState);
+                                            callState.on('stream', (remoteStream) => {
+                                                videoEl.current.srcObject = streamState;
+                                                peerVideoEl.current.srcObject = remoteStream;
+                                            });
+                                        }} >
+                                            <PhoneIcon />
+                                        </div>
+                                        <div className="callendincoming-iconContainer" onClick={() => {
+                                            const tracks = streamState.getTracks();
+                                            socket.emit('videocall-reject', otherPeer);
+                                            tracks.forEach(function (track) {
+                                                track.stop();
+                                            });
+                                            setVideoModalOpen(false);
+                                            setVideoCalling('');
+                                        }}>
+                                            <CallEndIcon />
+                                        </div>
 
-                                                tracks.forEach(function (track) {
-                                                    if (track.kind == 'audio')
-                                                        track.enabled = false;
-                                                });
-                                                setMicState(!micState)
-                                            }} />
+                                    </div></>
+                            ) : (
+                                    <>
+                                        <div className="videoCallContainer">
+                                            <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
+                                        </div>
+                                        <div className="video-call-controls">
+                                            <div className="test"></div>
+                                            <div className="icon-container">
+                                                <div className="iconContainer">
+                                                    {
+                                                        micState ? (
+                                                            <MicIcon onClick={() => {
+                                                                const tracks = streamState.getTracks();
 
-                                        ) : (
-                                                <MicOffIcon onClick={() => {
-                                                    const tracks = streamState.getTracks();
+                                                                tracks.forEach(function (track) {
+                                                                    if (track.kind == 'audio')
+                                                                        track.enabled = false;
+                                                                });
+                                                                setMicState(!micState)
+                                                            }} />
 
-                                                    tracks.forEach(function (track) {
-                                                        if (track.kind == 'audio')
-                                                            track.enabled = true;
-                                                    });
-                                                    setMicState(!micState)
-                                                }} />
-                                            )
-                                    }
-                                </div>
-                                <div className="callend-iconContainer">
-                                    <CallEndIcon onClick={() => {
-                                        const tracks = streamState.getTracks();
-                                        socket.emit('videocall-reject', otherPeer);
-                                        tracks.forEach(function (track) {
-                                            track.stop();
-                                        });
-                                        setVideoModalOpen(false);
-                                    }} />
-                                </div>
-                                <div className="iconContainer">
-                                    {
-                                        videoState ? (
-                                            <VideocamIcon onClick={() => {
-                                                const tracks = streamState.getTracks();
+                                                        ) : (
+                                                                <MicOffIcon onClick={() => {
+                                                                    const tracks = streamState.getTracks();
 
-                                                tracks.forEach(function (track) {
-                                                    track.enabled = false;
-                                                });
-                                                setVideoState(!videoState)
-                                            }} />
-                                        ) : (
-                                                <VideocamOffIcon onClick={() => {
-                                                    const tracks = streamState.getTracks();
+                                                                    tracks.forEach(function (track) {
+                                                                        if (track.kind == 'audio')
+                                                                            track.enabled = true;
+                                                                    });
+                                                                    setMicState(!micState)
+                                                                }} />
+                                                            )
+                                                    }
+                                                </div>
+                                                <div className="callend-iconContainer">
+                                                    <CallEndIcon onClick={() => {
+                                                        const tracks = streamState.getTracks();
+                                                        socket.emit('videocall-reject', otherPeer);
+                                                        tracks.forEach(function (track) {
+                                                            track.stop();
+                                                        });
+                                                        setVideoModalOpen(false);
+                                                    }} />
+                                                </div>
+                                                <div className="iconContainer">
+                                                    {
+                                                        videoState ? (
+                                                            <VideocamIcon onClick={() => {
+                                                                const tracks = streamState.getTracks();
 
-                                                    tracks.forEach(function (track) {
-                                                        track.enabled = true;
-                                                    });
-                                                    setVideoState(!videoState)
-                                                }} />
-                                            )
-                                    }
-                                </div>
-                            </div>
-                            <div className="user-video-container">
-                                <video className="user-video" muted playsInline ref={videoEl} autoPlay></video>
-                            </div>
-                        </div>
+                                                                tracks.forEach(function (track) {
+                                                                    track.enabled = false;
+                                                                });
+                                                                setVideoState(!videoState)
+                                                            }} />
+                                                        ) : (
+                                                                <VideocamOffIcon onClick={() => {
+                                                                    const tracks = streamState.getTracks();
+
+                                                                    tracks.forEach(function (track) {
+                                                                        track.enabled = true;
+                                                                    });
+                                                                    setVideoState(!videoState)
+                                                                }} />
+                                                            )
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div className="user-video-container">
+                                                <video className="user-video" muted playsInline ref={videoEl} autoPlay></video>
+                                            </div>
+                                        </div>
+                                    </>
+                                )
+                        }
+
                     </Modal>
 
                     <Modal
