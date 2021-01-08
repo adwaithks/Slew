@@ -29,8 +29,11 @@ function Landing() {
 
     const joinHandler = (e) => {
         e.preventDefault();
-        window.localStorage.removeItem('user');
-        window.location.href = '/room/' + slewName
+        if (slewName.length != 0) {
+            window.localStorage.removeItem('user');
+            window.location.href = '/room/' + slewName;
+        }
+
     }
 
 

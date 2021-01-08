@@ -27,7 +27,6 @@ var incomingVideocallUsername;
 
 
 function ChatRoom() {
-    const inputRef = useRef(null);
     const videoEl = useRef(null);
     const peerVideoEl = useRef(null);
     const [isAudioRec, setIsAudioRec] = useState(false);
@@ -39,6 +38,7 @@ function ChatRoom() {
     const [roomName, setRoomName] = useState('');
     const [micState, setMicState] = useState(false);
     const [videoState, setVideoState] = useState(false);
+    const [connecting, setConnecting] = useState(false);
     const [streamState, setStream] = useState();
     const [pass, setPass] = useState('');
     const [passModalIsOpen, setPassModalIsOpen] = useState(false);
@@ -100,6 +100,7 @@ function ChatRoom() {
                         peerVideoEl.current.srcObject = stream;
                         setStream(stream);
                         socket.on('videocall-rejected', (data) => {
+                            setConnecting(false);
                             closeVideo(stream, data);
                         });
                     }).catch(err => {
@@ -214,6 +215,7 @@ function ChatRoom() {
                     peerVideoEl.current.srcObject = stream;
                     setStream(stream);
                     socket.on('videocall-rejected', (data) => {
+                        setConnecting(false);
                         closeVideo(stream, data);
                     });
                 }).catch(err => {
@@ -257,11 +259,13 @@ function ChatRoom() {
         socket.emit('videocall-peer', id);
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
             setStream(stream);
+            setConnecting(true);
             console.log('callingggg ' + id + ' ........');
             call = peer.call(id, stream);
             otherPeer = id;
             peerVideoEl.current.srcObject = stream;
             call.on('stream', (remoteStream) => {
+                setConnecting(false);
                 peerVideoEl.current.srcObject = remoteStream;
                 videoEl.current.srcObject = stream;
             });
@@ -524,7 +528,7 @@ function ChatRoom() {
                     >
                         <form className="nameForm" onSubmit={passHandler}>
                             <h4>Enter Password</h4>
-                            <input ref={inputRef} type="password" value={pass} onChange={(e) => {
+                            <input type="password" value={pass} onChange={(e) => {
                                 e.preventDefault();
                                 setPass(e.target.value);
                             }} />
@@ -549,19 +553,13 @@ function ChatRoom() {
                                     <div className="videoCallContainer">
                                         <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
                                     </div>
-                                    <h2 style={{
-                                        color: 'white',
-                                        position: 'absolute',
-                                        zIndex: '4500',
-                                        left: '40%',
-                                        top: '80%',
-                                        translate: 'transform(-50%)'
-                                    }}>Incoming Video call from {incomingVideocallUsername}</h2>
+                                    <h2 className="incoming-videocall-text">Incoming Video call from {incomingVideocallUsername}</h2>
                                     <div className="video-callincoming-controls">
                                         <div className="callaccept-iconContainer" onClick={() => {
                                             setVideoCalling('');
-                                            setVideoState(!videoState);
-                                            setMicState(!micState);
+                                            setConnecting(false);
+                                            setVideoState(false);
+                                            setMicState(false);
                                             callState.answer(streamState);
                                             callState.on('stream', (remoteStream) => {
                                                 videoEl.current.srcObject = streamState;
@@ -572,6 +570,9 @@ function ChatRoom() {
                                         </div>
                                         <div className="callendincoming-iconContainer" onClick={() => {
                                             const tracks = streamState.getTracks();
+                                            setConnecting(false);
+                                            setConnecting(false);
+                                            setVideoState(false);
                                             socket.emit('videocall-reject', otherPeer);
                                             tracks.forEach(function (track) {
                                                 track.stop();
@@ -588,6 +589,11 @@ function ChatRoom() {
                                         <div className="videoCallContainer">
                                             <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
                                         </div>
+                                        {
+                                            connecting ? (
+                                                <h3 className="connecting-text">Connecting ...</h3>
+                                            ) : null
+                                        }
                                         <div className="video-call-controls">
                                             <div className="test"></div>
                                             <div className="icon-container">
@@ -596,7 +602,6 @@ function ChatRoom() {
                                                         micState ? (
                                                             <MicIcon onClick={() => {
                                                                 const tracks = streamState.getTracks();
-
                                                                 tracks.forEach(function (track) {
                                                                     if (track.kind == 'audio')
                                                                         track.enabled = false;
@@ -607,7 +612,6 @@ function ChatRoom() {
                                                         ) : (
                                                                 <MicOffIcon onClick={() => {
                                                                     const tracks = streamState.getTracks();
-
                                                                     tracks.forEach(function (track) {
                                                                         if (track.kind == 'audio')
                                                                             track.enabled = true;
@@ -671,7 +675,7 @@ function ChatRoom() {
                     >
                         <form className="nameForm" onSubmit={nameHandler}>
                             <h4>Enter your name for others to identify</h4>
-                            <input ref={inputRef} type="text" value={name} onChange={(e) => {
+                            <input type="text" value={name} onChange={(e) => {
                                 e.preventDefault();
                                 setName(e.target.value);
                             }} />
@@ -680,7 +684,7 @@ function ChatRoom() {
                     </Modal>
                     <div className="send-message">
                         <form onSubmit={sendMessage} className="messageInputContainer">
-                            <input ref={inputRef} type="text" onChange={(e) => {
+                            <input type="text" onChange={(e) => {
                                 e.preventDefault();
                                 messageHandler(e);
                             }} value={message} placeholder="Message" />

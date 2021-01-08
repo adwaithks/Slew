@@ -121,6 +121,15 @@
     align-items: center;
 }
 
+.connecting-text {
+    position: absolute;
+    left: 50%;
+    color: white;
+    font-size: 35px;
+    transform: translate(-50%);
+}
+
+
 .callendincoming-iconContainer>* {
     color: white;
 }
@@ -163,6 +172,13 @@
 		transform: scale(0.90);
 		box-shadow: 0 0 0 0 rgb(0, 0, 0);
 	}
+}
+
+.incoming-videocall-text {
+    position: absolute;
+    z-index: 4500;
+    bottom: 200px;
+    color: white;
 }
 
 
@@ -603,8 +619,6 @@ audio::-webkit-media-controls-panel{
     font-size: 55px !important;
 }
 
-
-
 .messageInputContainer {
     display: flex;
     align-items: center;
@@ -698,6 +712,17 @@ audio::-webkit-media-controls-panel{
         width: 60%;
     }
     
+    .video-callincoming-controls {
+        width: 80%;
+        height: 120px;
+        align-items: center;
+        display: flex;
+        justify-content: space-evenly;
+        position: absolute;
+        bottom: 0;
+        margin-top: 200px !important;
+        z-index: 2000;
+    }
 
     
 }
