@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-//const path = require('path');
-const morgan = require('morgan');
+const path = require('path');
+//const morgan = require('morgan');
 const {OAuth2Client} = require('google-auth-library');
 const io = require('socket.io')(server);
 const { v4: uuidv4 } = require('uuid');
@@ -15,7 +15,7 @@ var privateRooms = [];
 
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
+//app.use(morgan('dev'));
 
 mongoose.connect(
     "mongodb+srv://ruby:ruby@cluster0.pfsz5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
@@ -25,10 +25,10 @@ mongoose.connect(
     }
 );
 
-/*app.use(express.static(path.join(__dirname, 'client', 'build')));
+app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
-});*/
+});
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;

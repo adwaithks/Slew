@@ -40,7 +40,7 @@ function ChatRoom(props) {
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`http://localhost:5000/verify`, {
+            const response = await fetch(`/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
