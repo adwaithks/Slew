@@ -20,7 +20,7 @@
     "uuid": "^8.3.2",
     "web-vitals": "^0.2.4"
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "https://slewstaging.herokuapp.com",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

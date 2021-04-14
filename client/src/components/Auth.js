@@ -7,6 +7,29 @@ function Auth(props) {
 
     const {Gpayload, setGPayload, Guser, setGUser} = useContext(UserContext);
 
+    useEffect(() => {
+        const main = async () => {
+            const token = window.localStorage.getItem('AccessToken');
+            if (!token) {
+                props.history.push('/');
+            }
+            var ran = Math.random().toString(36).substring(4);
+            const response = await fetch(`/verify/?token=${token}&${ran}=1`, {
+                method: 'GET'
+            });
+
+            if (response.status != 200) {
+                // do nothing
+            } else {
+                const res = await response.json();
+                setGPayload(res);
+                props.history.push('/create');
+            }
+        }
+        main();
+    }, []);
+
+
     return (
         <div>
             <GoogleLogin
@@ -19,6 +42,7 @@ function Auth(props) {
                     });
                     if (response.status === 200) {
                         const res = await response.json();
+                        console.log(res);
                         setGPayload({
                             name: res.name,
                             email: res.email,
