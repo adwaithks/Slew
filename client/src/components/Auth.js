@@ -1,22 +1,49 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import { GoogleLogin } from 'react-google-login';
 import { UserContext } from '../context/UserContext';
 import {withRouter} from 'react-router-dom';
+import './Auth.css';
 
 function Auth(props) {
 
     const {Gpayload, setGPayload, Guser, setGUser} = useContext(UserContext);
 
+    useEffect(() => {
+        const main = async () => {
+            const token = window.localStorage.getItem('AccessToken');
+            if (!token) {
+                return
+            }
+            const response = await fetch(`http://localhost:5000/verify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: token
+                })
+            });
+
+            if (response.status != 200) {
+                return
+            } else {
+                const res = await response.json();
+                setGPayload(res);
+                props.history.push('/create');
+            }
+        }
+        main();
+    }, []);
+
+
+
     return (
-        <div>
+        <div className="Auth">
             <GoogleLogin
+                className="googleLogin-auth"
                 clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
                 buttonText="Login"
                 onSuccess={async (res) => {
-                    console.log('success called !');
-                    console.log(res);
                     setGUser(res);
-                    const response = await fetch(`/auth`, {
+                    const response = await fetch(`http://localhost:5000/auth`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json'},
                         body: JSON.stringify({
@@ -27,10 +54,6 @@ function Auth(props) {
                     if (response.status == 200) {
                         try {
                             const res = await response.json();
-                            console.log('=======response============');
-                            console.log(response);
-                            console.log('res: ');
-                            console.log(res);
                             setGPayload({
                                 name: res.name,
                                 email: res.email,

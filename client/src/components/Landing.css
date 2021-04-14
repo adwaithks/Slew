@@ -4,6 +4,19 @@
     background-color: rgb(17, 17, 17);
 }
 
+.avatarContainer-landing {
+    transition: ease-in 0.2s;
+}
+
+.avatarContainer-landing:hover {
+    cursor: pointer;
+}
+
+.avatarContainer-landing > *:hover {
+    transform: scale(1.03);
+}
+
+
 .button-group {
     height: 170px;
     display: flex;

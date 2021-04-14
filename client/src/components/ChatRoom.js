@@ -7,6 +7,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Alert from '@material-ui/lab/Alert';
 import Modal from 'react-modal';
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
+import AvatarGroup from '@material-ui/lab/AvatarGroup';
 import PhoneIcon from '@material-ui/icons/Phone';
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
@@ -34,13 +35,12 @@ function ChatRoom(props) {
 
 
     useEffect(() => {
-
         const main = async () => {
             const token = window.localStorage.getItem('AccessToken');
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`/verify`, {
+            const response = await fetch(`http://localhost:5000/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -70,32 +70,13 @@ function ChatRoom(props) {
             requestNotifPerm();
             setRoomName(roomName);
 
-            /*socket.emit('join-room', {
-                user: Gpayload.name,
-                roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
-                imageUrl: Gpayload.imageUrl,
-                email: Gpayload.email
-            });*/
 
             socket.emit('join-room', {
-                user: (Guser.profileObj) ? Guser.profileObj.name : window.localStorage.getItem('user').toString(),
+                user: Guser.profileObj ? Guser.profileObj.name : window.localStorage.getItem('user'),
                 roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
                 imageUrl: Guser.profileObj ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
                 email: Guser.profileObj ? Guser.profileObj.email : window.localStorage.getItem('email')
             });
-            /*console.log({
-                user: (Guser.profileObj) ? Guser.profileObj.name : window.localStorage.getItem('user'),
-                roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
-                imageUrl: Guser.profileObj ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
-                email: Guser.profileObj ? Guser.profileObj.email : window.localStorage.getItem('email')
-            })
-            // join room
-            socket.emit('join-room', {
-                user: (Guser.profileObj) ? Guser.profileObj.name : window.localStorage.getItem('user'),
-                roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
-                imageUrl: Guser.profileObj ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
-                email: Guser.profileObj ? Guser.profileObj.email : window.localStorage.getItem('email')
-            });*/
 
             // password required - protected room
             socket.on('pass-required', data => {
@@ -154,7 +135,9 @@ function ChatRoom(props) {
 
             socket.on('connected-clients', (connectedClients) => {
                 setUsers(connectedClients);
+                console.log('connectedClients');
                 console.log(connectedClients);
+
             });
 
             socket.on('message-from-server', (msg) => {
@@ -269,6 +252,7 @@ function ChatRoom(props) {
 
     const sendMessage = (e) => {
         e.preventDefault();
+        console.log(chatWindowRef.current.scrollHeight)
         if (message.length !== 0) {
             var currentdate = new Date();
             var datetime = currentdate.getDate() + "/"
@@ -277,14 +261,6 @@ function ChatRoom(props) {
                 + currentdate.getHours() + ":"
                 + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
-            setDateTime(datetime);
-            /**
-             * 
-             * user: (Guser) ? Guser.profileObj.name : window.localStorage.getItem('user'),
-                roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
-                imageUrl: Guser ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
-                email: Guser ? Guser.Rs.At : window.localStorage.getItem('email')
-             */
             const user = Gpayload.name;
             const imageUrl = Gpayload.imageUrl;
             setAllMsg((allMsg) => [...allMsg, {
@@ -303,16 +279,8 @@ function ChatRoom(props) {
             });
             setMessage("");
             setMsgOrAudio('audio');
-           // chatWindowRef.current.scrollTop = chatwindowRef.current.scrollHeight;
         }
     }
-
-    /*const nameHandler = (e) => {
-        e.preventDefault();
-        window.localStorage.setItem('user', Guser.Rs.BT);
-        connectClient();
-        setModalIsOpen(false);
-    }*/
 
     const copyShareHandler = () => {
         navigator.clipboard.writeText(window.location.href).then(() => {
@@ -345,7 +313,6 @@ function ChatRoom(props) {
                     }
                 }).catch(function (err) {
                     console.log('The following getUserMedia error occurred: ' + err);
-                    //if (err === 'Permission denied') {recordAudio();}
                 }
                 );
         } else {
@@ -374,11 +341,13 @@ function ChatRoom(props) {
                     }
                 </div>
                 <div className="participantsContainer">
+                <AvatarGroup max={5}>
                     {
                         users.map((each, index) => (
                             <Avatar title={each.name} className="participantsAvatar" alt={each.name} src={each.imageUrl} />
                         ))
                     }
+                </AvatarGroup>  
                 </div>
             </div>
             <div className="main-window">
@@ -417,33 +386,57 @@ function ChatRoom(props) {
                             ) :
                                 (allMsg.map((each, index) => (
                                     (each.newComer) ? (
-                                        <div className="newComer">
+                                        <div key={index} className="newComer">
                                             <h3>{each.message}</h3>
                                         </div>
                                     ) : (each.exitmsg) ? (
-                                        <div className="exitmsg">
+                                        <div key={index} className="exitmsg">
                                             <h3>{each.message}</h3>
                                         </div>
                                     ) : (each.audioMsg) ? (
-                                        <div className="audio-message">
-                                            
-                                            <div className="senderinfo">
-                                                <div className="avatar">
-                                                    <Avatar className="avatar-icon" alt={Gpayload.name} src={Gpayload.imageUrl} />
-                                                </div>      
-                                                <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                <h5>{each.time}</h5>                                    
-                                            </div>
+                                        <div key={index} className="audio-message">
+                                            {
+                                                            index > 0 ? (
+                                                                (allMsg[index - 1].user !== Gpayload.name) ? (
+                                                                    <div className="senderinfo">
+                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                                        <h5>{each.time}</h5>                                                           
+                                                                    </div>
+                                                                ) : null
+                                                            ) : (
+                                                                <div className="senderinfo">
+                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                                        <h5>{each.time}</h5>                                                           
+                                                                    </div>
+                                                            )
+                                                            
+                                                        }
                                             <audio src={window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/ogg; codecs=opus' }))} controls></audio>
                                         </div>
 
                                     ) : (
                                                     <div key={index} className="message">
-                                                        <div className="senderinfo">
-                                                            <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
-                                                            <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                            <h5>{each.time}</h5>                                                           
-                                                        </div>
+                                                        {
+                                                            index > 0 ? (
+                                                                (allMsg[index - 1].user !== Gpayload.name) ? (
+                                                                    <div className="senderinfo">
+                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                                        <h5>{each.time}</h5>                                                           
+                                                                    </div>
+                                                                ) : null
+                                                            ) : (
+                                                                <div className="senderinfo">
+                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                                        <h5>{each.time}</h5>                                                           
+                                                                    </div>
+                                                            )
+                                                            
+                                                        }
+                                                        
                                                         <h5>{each.message || 'Not yet reached'}</h5>
                                                     </div>
                                                 ) 

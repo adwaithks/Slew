@@ -1,0 +1,23 @@
+.Auth {
+    width: 100%;
+    height: 100%;
+}
+
+.googleLogin-auth {
+    width: 320px !important;
+    display: flex !important;
+    position: absolute !important;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    top: 40%;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 25px !important;
+    border-radius: 5px !important;
+    background-color: black !important;
+    color: white !important;
+}
+
+.googleLogin-auth > * {
+    background-color: black !important;
+}

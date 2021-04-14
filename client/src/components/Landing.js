@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { socket } from '../socket';
 import Avatar from '@material-ui/core/Avatar';
 import { UserContext } from '../context/UserContext';
+import { GoogleLogin } from 'react-google-login';
+
 
 function Landing(props) {
 
@@ -16,7 +18,7 @@ function Landing(props) {
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`/verify`, {
+            const response = await fetch(`http://localhost:5000/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -34,7 +36,7 @@ function Landing(props) {
         main();
     }, []);
 
-    const {Gpayload, setGPayload} = useContext(UserContext);
+    const {Gpayload, setGPayload, Guser, setGUser} = useContext(UserContext);
 
     const [isOpen, setIsOpen] = useState(false);
     const [privacy, setPrivacy] = useState(false);
@@ -44,24 +46,21 @@ function Landing(props) {
 
     const submitHandler = (e) => {
         e.preventDefault();
-        window.localStorage.removeItem('user');
         if (privacy === false) {
             var id = uuidv4();
-            //window.location.href = '/room/' + id;
-            props.history.push(`/room/` + id);
+            window.location.href = '/room/' + id;
         } else {
             socket.emit('create-private-room', {
                 slewName: slewName,
                 pass: pass
             });
-            props.history.push(`/room/` + slewName);
+            window.location.href = '/room/' + slewName;
         }
     }
 
     const joinHandler = (e) => {
         e.preventDefault();
         if (slewName.length !== 0) {
-            window.localStorage.removeItem('user');
             window.location.href = '/room/' + slewName;
         }
 
@@ -72,8 +71,56 @@ function Landing(props) {
         <div className="Landing">
             <div className="userTab">
                 <div></div>
-                <div>
-                    <Avatar alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} /> 
+                <div className="avatarContainer-landing">
+                <GoogleLogin
+                    clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
+                    render={renderProps => (
+                    <Avatar onClick={renderProps.onClick} disabled={renderProps.disabled} alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} />
+                    )}
+                    buttonText="Login"
+                    onSuccess={async (res) => {
+                        setGUser(res);
+                        const response = await fetch(`http://localhost:5000/auth`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                tokenId: res.tokenId
+                            })
+                        });
+    
+                        if (response.status == 200) {
+                            try {
+                                const res = await response.json();
+                                setGPayload({
+                                    name: res.name,
+                                    email: res.email,
+                                    imageUrl: res.imageUrl
+                                });
+                                console.log({
+                                    name: res.name,
+                                    email: res.email,
+                                    imageUrl: res.imageUrl
+                                })
+                                window.localStorage.setItem('user', res.name);
+                                window.localStorage.setItem('imageUrl', res.imageUrl);
+                                window.localStorage.setItem('email', res.email);
+                                const accessToken = res.accessToken;
+                                window.localStorage.setItem('AccessToken', accessToken);
+                                props.history.push('/create');
+                            } catch (error) {
+                                console.log('errorrrrr');
+                                console.log(error);
+                            }
+                            
+                            
+                        }
+                    }}
+                    onFailure={(res) => {
+                        console.log('failed');
+                        console.log(res);
+                        }}
+                    cookiePolicy={'single_host_origin'}
+                />
                 </div>
             </div>
             <Modal

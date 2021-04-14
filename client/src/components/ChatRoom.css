@@ -268,10 +268,9 @@
 }
 
 ::-webkit-scrollbar {
-    width: 0;  /* Remove scrollbar space */
-    background: transparent;  /* Optional: just make scrollbar invisible */
+    width: 5px;  /* Remove scrollbar space */
+    background: rgb(37, 37, 37);  /* Optional: just make scrollbar invisible */
 }
-
 
 .chats {
     height: 95%;
@@ -691,8 +690,6 @@ audio::-webkit-media-controls-panel{
 }
 
 @media (max-width: 660px) {
-
-
     .audio-message {
         height: fit-content;
         float: left;
@@ -702,7 +699,7 @@ audio::-webkit-media-controls-panel{
         margin-top: 10px;
         border-radius: 5px;
         word-break: break-all;
-        width: 80%;
+        width: 90%;
     }
 
     .audio-message > audio {
@@ -809,5 +806,11 @@ audio::-webkit-media-controls-panel{
         margin-top: 2px;
     }
 
-        
+    .participantsContainer {
+        width: 70%;
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+        height: 40px;
+    }
 }
