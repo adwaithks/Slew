@@ -56,7 +56,7 @@ app.get('/auth', async (req, res) => {
         name: payload.name,
         email: payload.email,
         imageUrl: payload.picture
-    }, 'secretcode', {expiresIn: '7 days'});
+    }, 'secretcode', {expiresIn: '2 days'});
 
     if (jwtToken) {   
         res.status(200).json({

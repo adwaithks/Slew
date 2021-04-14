@@ -13,6 +13,8 @@ function Auth(props) {
                 clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
                 buttonText="Login"
                 onSuccess={async (res) => {
+                    console.log('success called !');
+                    console.log(res);
                     setGUser(res);
                     const response = await fetch(`/auth?tokenId=${res.tokenId}`, {
                         method: 'GET'
