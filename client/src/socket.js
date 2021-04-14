@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 
-export const socket = io('wss://slewstaging.herokuapp.com', {
+export const socket = io('wss://slewstaging2.herokuapp.com', {
     transports: ['websocket']
 });
 

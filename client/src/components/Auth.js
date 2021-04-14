@@ -16,7 +16,7 @@ function Auth(props) {
                     console.log('success called !');
                     console.log(res);
                     setGUser(res);
-                    const response = await fetch(`https://slewstaging.herokuapp.com/auth?tokenId=${res.tokenId}`, {
+                    const response = await fetch(`https://slewstaging2.herokuapp.com/auth?tokenId=${res.tokenId}`, {
                         method: 'GET'
                     });
 

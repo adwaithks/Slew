@@ -17,7 +17,7 @@ function Landing(props) {
                 props.history.push('/');
             }
             var ran = Math.random().toString(36).substring(4);
-            const response = await fetch(`https://slewstaging.herokuapp.com/verify/?token=${token}&${ran}=1`, {
+            const response = await fetch(`https://slewstaging2.herokuapp.com/verify/?token=${token}&${ran}=1`, {
                 method: 'GET'
             });
 
