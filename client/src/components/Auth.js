@@ -39,7 +39,7 @@ function Auth(props) {
         <div className="Auth">
             <GoogleLogin
                 className="googleLogin-auth"
-                clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
+                clientId={process.env.CLIENT_ID}
                 buttonText="Login"
                 onSuccess={async (res) => {
                     setGUser(res);

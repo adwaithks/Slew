@@ -11,15 +11,14 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('./models/userModel');
 const PrivateGroup = require('./models/privateGroupModel');
-
-var privateRooms = [];
+require('dotenv').config();
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
 mongoose.connect(
-    "mongodb+srv://ruby:ruby@cluster0.pfsz5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    process.env.MONGODB_URI,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -33,7 +32,7 @@ app.get('*', (req, res) => {
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;
-    const GOOGLE_CLIENT_ID = "72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com";
+    const GOOGLE_CLIENT_ID = process.env.CLIENT_ID;
     const client = new OAuth2Client(GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
         idToken: tokenId,
@@ -57,7 +56,7 @@ app.post('/auth', async (req, res) => {
         name: payload.name,
         email: payload.email,
         imageUrl: payload.picture
-    }, 'secretcode', {expiresIn: '2 days'});
+    }, process.env.JWT_SECRET, {expiresIn: '2 days'});
 
     res.status(200).json({
         name: payload.name,
@@ -71,7 +70,7 @@ app.post('/verify', async (req, res) => {
     const jwtToken = req.body.token;
     
     try {
-        const decoded = jwt.verify(jwtToken, 'secretcode');
+        const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
         const email = decoded.email;
         const user = await User.findOne({
             email: email

@@ -84,7 +84,7 @@ function Landing(props) {
                 <div></div>
                 <div className="avatarContainer-landing">
                 <GoogleLogin
-                    clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
+                    clientId={process.env.CLIENT_ID}
                     render={renderProps => (
                     <Avatar onClick={renderProps.onClick} disabled={renderProps.disabled} alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} />
                     )}
