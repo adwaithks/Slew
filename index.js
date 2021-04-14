@@ -36,7 +36,6 @@ app.get('/auth', async (req, res) => {
     const ticket = await client.verifyIdToken({
         idToken: tokenId,
         audience: GOOGLE_CLIENT_ID,
-
       });
     const payload = ticket.payload;
 
@@ -58,16 +57,12 @@ app.get('/auth', async (req, res) => {
         imageUrl: payload.picture
     }, 'secretcode', {expiresIn: '2 days'});
 
-    if (jwtToken) {   
-        res.status(200).json({
-            name: payload.name,
-            email: payload.email,
-            imageUrl: payload.picture,
-            accessToken: jwtToken
-        });
-    } else {
-        res.status(500).json('Internal Server Error');
-    } 
+    res.status(200).json({
+        name: payload.name,
+        email: payload.email,
+        imageUrl: payload.picture,
+        accessToken: jwtToken
+    });
 });
 
 app.get('/verify', async (req, res) => {
