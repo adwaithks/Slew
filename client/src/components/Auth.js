@@ -14,7 +14,7 @@ function Auth(props) {
                 buttonText="Login"
                 onSuccess={async (res) => {
                     setGUser(res);
-                    const response = await fetch(`http://localhost:5000/auth?tokenId=${res.tokenId}`, {
+                    const response = await fetch(`/auth?tokenId=${res.tokenId}`, {
                         method: 'GET'
                     });
                     if (response.status === 200) {
