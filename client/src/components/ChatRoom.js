@@ -41,7 +41,7 @@ function ChatRoom(props) {
                 props.history.push('/');
             }
             var ran = Math.random().toString(36).substring(4);
-            const response = await fetch(`https://slewstaging.herokuapp.com/verify/?token=${token}&${ran}=1`, {
+            const response = await fetch(`http://localhost:5000/verify/?token=${token}&${ran}=1`, {
                 method: 'GET'
             });
 
@@ -283,9 +283,7 @@ function ChatRoom(props) {
                 email: Guser ? Guser.Rs.At : window.localStorage.getItem('email')
              */
             const user = Gpayload.name;
-            console.log('user: ' + user);
             const imageUrl = Gpayload.imageUrl;
-            console.log('image: ' + imageUrl);
             setAllMsg((allMsg) => [...allMsg, {
                 message: message,
                 user: user,

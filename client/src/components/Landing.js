@@ -17,7 +17,7 @@ function Landing(props) {
                 props.history.push('/');
             }
             var ran = Math.random().toString(36).substring(4);
-            const response = await fetch(`https://slewstaging.herokuapp.com/verify/?token=${token}&${ran}=1`, {
+            const response = await fetch(`http://localhost:5000/verify/?token=${token}&${ran}=1`, {
                 method: 'GET'
             });
 
@@ -32,7 +32,6 @@ function Landing(props) {
     }, []);
 
     const {Gpayload, setGPayload} = useContext(UserContext);
-    console.log(Gpayload)
 
     const [isOpen, setIsOpen] = useState(false);
     const [privacy, setPrivacy] = useState(false);

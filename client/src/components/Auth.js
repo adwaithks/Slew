@@ -13,9 +13,8 @@ function Auth(props) {
                 clientId="72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com"
                 buttonText="Login"
                 onSuccess={async (res) => {
-                    console.log(res);
                     setGUser(res);
-                    const response = await fetch(`https://slewstaging.herokuapp.com/auth?tokenId=${res.tokenId}`, {
+                    const response = await fetch(`http://localhost:5000/auth?tokenId=${res.tokenId}`, {
                         method: 'GET'
                     });
                     if (response.status === 200) {
