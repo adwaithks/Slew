@@ -16,14 +16,16 @@ function Auth(props) {
                     console.log('success called !');
                     console.log(res);
                     setGUser(res);
-                    const response = await fetch(`https://slewstaging2.herokuapp.com/auth?tokenId=${res.tokenId}`, {
+                    const response = await fetch(`/auth?tokenId=${res.tokenId}`, {
                         method: 'GET'
                     });
 
                     if (response.status == 200) {
                         try {
                             const res = await response.json();
-                            console.log('response: ');
+                            console.log('=======response============');
+                            console.log(response);
+                            console.log('res: ');
                             console.log(res);
                             setGPayload({
                                 name: res.name,
@@ -37,7 +39,8 @@ function Auth(props) {
                             window.localStorage.setItem('AccessToken', accessToken);
                             props.history.push('/create');
                         } catch (error) {
-                            console.log('errorrrrr')
+                            console.log('errorrrrr');
+                            console.log(error);
                         }
                         
                         

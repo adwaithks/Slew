@@ -20,6 +20,7 @@
     "uuid": "^8.3.2",
     "web-vitals": "^0.2.4"
   },
+  "proxy": "https://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
