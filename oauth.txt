@@ -1,0 +1,2 @@
+ID = 72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com
+SECRET = RIEvSa9Od6Mv7IbfgFPnxhkF

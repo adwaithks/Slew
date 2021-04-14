@@ -1,8 +1,8 @@
 
 .Chatroom {
-    
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    overflow-y: hidden;
 }
 
 .nodisplay  {
@@ -10,11 +10,11 @@
 }
 
 .headWindow {
-    height: fit-content;
+    height: 45px;
+    border-radius: 5px;
+    background-color: rgb(20, 20, 20);
     margin-top: 20px;
-    background-color: black;
-    border-top-right-radius: 5px;
-    border-top-left-radius: 5px;
+    margin-bottom: 10px;
     align-items: center;
     display: flex;
     justify-content: space-between;
@@ -46,9 +46,6 @@
     width: 90%;
     margin-left: auto;
     margin-right: auto;
-    box-shadow: 10px 10px 15px -5px rgb(17, 17, 17);
-    -webkit-box-shadow: 10px 10px 15px -5px rgb(22, 22, 22);
-    -moz-box-shadow: 10px 10px 15px -5px rgb(19, 19, 19);
     height: calc(100vh - 70px);
     display: flex;
     border-radius: 3px;
@@ -57,11 +54,11 @@
 .users {
     width: 30%;
     display: flex;
+    height: calc(100% - 20px) !important;
     transition: width 2s ease;
     flex-direction: column;
     border-bottom-left-radius: 5px;
     border-right: yellowgreen solid 3px;
-    background-color: rgb(8, 8, 8);
 
 }
 
@@ -265,19 +262,16 @@
 
 .chat-window {
     display: flex;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
     width: 100%;
-    background-color: rgb(14, 14, 14);
     border-bottom-right-radius: 5px;
     flex-direction: column;
 }
 
-.chat-window::-webkit-scrollbar {
-    display: none;
-  }
+::-webkit-scrollbar {
+    width: 0;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+
 
 .chats {
     height: 95%;
@@ -416,20 +410,21 @@
 
 .send-message {
     height: fit-content;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
     width: 100%;
 }
 
 .audio-message {
     height: fit-content;
-    bottom: 0;
     float: left;
     margin-right: 10px;
     color: white;
-    margin-left: 15px;
+    margin-left: 25px;
     margin-top: 10px;
     border-radius: 5px;
     word-break: break-all;
-    margin-bottom: 5px;
     width: fit-content;
 }
 
@@ -440,17 +435,74 @@
 
 .message {
     height: fit-content;
-    bottom: 0;
     float: left;
     margin-right: 10px;
     color: white;
-    margin-left: 15px;
+    margin-left: 25px;
     margin-top: 10px;
     border-radius: 5px;
     word-break: break-all;
-    margin-bottom: 5px;
     width: fit-content;
 }
+
+.avatar-icon {
+    font-size: 25px !important;
+    height: 35px !important;
+    margin-right: 10px;
+    width: 35px !important;
+}
+
+.participantsContainer {
+    width: 90%;
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    height: 40px;
+}
+
+.participantsAvatar {
+    margin-left: 2px;
+    transition: ease-in 0.2s;
+}
+
+.participantsAvatar:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+.senderinfo {
+    width: fit-content;
+    height: fit-content;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.senderinfo > h4 {
+    margin-right: 6px;
+    font-weight: 550;
+    font-size: 19px;
+    text-transform: capitalize;
+}
+
+.senderinfo > h5 {
+    font-size: 15px;
+    margin-right: 6px;
+    margin-left: 5px;
+    font-weight: 400;
+    color: rgb(141, 141, 141);
+}
+
+.message > h5 {
+    font-weight: 400;
+    margin-left: 45px;
+    margin-right: 5px;
+    color: rgb(204, 204, 204);
+    margin-bottom: 3px;
+    font-size: 16px;
+    margin-top: 2px;
+}
+
 
 .group-intro {
     background-color: greenyellow;
@@ -505,39 +557,7 @@
     font-size: 25px !important;
 }
 
-.senderinfo {
-    width: 100%;
-    height: fit-content;
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    margin-left: 5px;
-    }
 
-.senderinfo > h4 {
-    margin-right: 6px;
-    font-weight: 550;
-    font-size: 19px;
-    text-transform: capitalize;
-}
-
-.senderinfo > h5 {
-    font-size: 15px;
-    margin-right: 6px;
-    margin-left: 5px;
-    font-weight: 400;
-    color: rgb(141, 141, 141);
-}
-
-.message > h5 {
-    font-weight: 400;
-    margin-left: 5px;
-    margin-right: 5px;
-    color: rgb(204, 204, 204);
-    margin-bottom: 3px;
-    font-size: 16px;
-    margin-top: 2px;
-}
 
 .audio-modal {
     position: absolute;
@@ -567,7 +587,9 @@
 
 audio {
     outline: none;
+    border-radius: 5px !important;
     border: none;
+    height: 50px;
 }
 
 .audio-icon-container {
@@ -580,12 +602,10 @@ audio {
     margin-top: 20px;
     justify-content: center;
     align-items: center;
-    background-color: black;
 }
 
 audio::-webkit-media-controls-panel{
     background-color: rgb(174, 255, 12) !important;
-    border-radius: 5px !important; 
 }
 
 
@@ -672,6 +692,37 @@ audio::-webkit-media-controls-panel{
 
 @media (max-width: 660px) {
 
+
+    .audio-message {
+        height: fit-content;
+        float: left;
+        margin-right: 10px;
+        color: white;
+        margin-left: 25px;
+        margin-top: 10px;
+        border-radius: 5px;
+        word-break: break-all;
+        width: 80%;
+    }
+
+    .audio-message > audio {
+        margin-top: 7px;
+        width: 90%;
+    }
+
+    .message {
+        height: fit-content;
+        float: left;
+        margin-right: 10px;
+        color: white;
+        margin-left: 25px;
+        margin-top: 10px;
+        border-radius: 5px;
+        word-break: break-all;
+        width: fit-content;
+    }
+    
+
     .user-video {
         height: 160px;
         width: 110px;
@@ -693,6 +744,14 @@ audio::-webkit-media-controls-panel{
         justify-content: space-evenly;
         align-items: center;
     }
+
+    .send-message {
+        height: fit-content;
+        left: 1%;
+        position: absolute;
+        bottom: 0;
+        width: 95%;
+    }
     
 
     .main-window {
@@ -709,7 +768,7 @@ audio::-webkit-media-controls-panel{
     }
 
     .users {
-        width: 60%;
+        width: 100%;
     }
     
     .video-callincoming-controls {
@@ -724,5 +783,31 @@ audio::-webkit-media-controls-panel{
         z-index: 2000;
     }
 
-    
+
+    .senderinfo > h4 {
+        margin-right: 6px;
+        font-weight: 550;
+        font-size: 16px;
+        text-transform: capitalize;
+    }
+
+    .senderinfo > h5 {
+        font-size: 14px;
+        margin-right: 6px;
+        margin-left: 5px;
+        font-weight: 400;
+        color: rgb(141, 141, 141);
+    }
+
+    .message > h5 {
+        font-weight: 400;
+        margin-left: 45px;
+        margin-right: 5px;
+        color: rgb(204, 204, 204);
+        margin-bottom: 3px;
+        font-size: 16px;
+        margin-top: 2px;
+    }
+
+        
 }

@@ -19,6 +19,17 @@
     transform: translate(-50%, -50%);  
 }
 
+.userTab {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .button-group > * {
     width: 90%;
     height: 45px;

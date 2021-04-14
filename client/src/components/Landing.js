@@ -1,10 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Modal from 'react-modal';
+import {withRouter} from 'react-router-dom'
 import './Landing.css';
 import { v4 as uuidv4 } from 'uuid';
 import { socket } from '../socket';
+import Avatar from '@material-ui/core/Avatar';
+import { UserContext } from '../context/UserContext';
 
-function Landing() {
+function Landing(props) {
+
+
+    useEffect(() => {
+        const main = async () => {
+            const token = window.localStorage.getItem('AccessToken');
+            if (!token) {
+                props.history.push('/');
+            }
+            var ran = Math.random().toString(36).substring(4);
+            const response = await fetch(`http://localhost:5000/verify/?token=${token}&${ran}=1`, {
+                method: 'GET'
+            });
+
+            if (response.status != 200) {
+                props.history.push('/');
+            } else {
+                const res = await response.json();
+                setGPayload(res);
+            }
+        }
+        main();
+    }, []);
+
+    const {Gpayload, setGPayload} = useContext(UserContext);
+    console.log(Gpayload)
 
     const [isOpen, setIsOpen] = useState(false);
     const [privacy, setPrivacy] = useState(false);
@@ -15,21 +43,22 @@ function Landing() {
     const submitHandler = (e) => {
         e.preventDefault();
         window.localStorage.removeItem('user');
-        if (privacy == false) {
+        if (privacy === false) {
             var id = uuidv4();
-            window.location.href = '/room/' + id;
+            //window.location.href = '/room/' + id;
+            props.history.push(`/room/` + id);
         } else {
             socket.emit('create-private-room', {
                 slewName: slewName,
                 pass: pass
             });
-            window.location.href = '/room/' + slewName;
+            props.history.push(`/room/` + slewName);
         }
     }
 
     const joinHandler = (e) => {
         e.preventDefault();
-        if (slewName.length != 0) {
+        if (slewName.length !== 0) {
             window.localStorage.removeItem('user');
             window.location.href = '/room/' + slewName;
         }
@@ -39,6 +68,12 @@ function Landing() {
 
     return (
         <div className="Landing">
+            <div className="userTab">
+                <div></div>
+                <div>
+                    <Avatar alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} /> 
+                </div>
+            </div>
             <Modal
                 isOpen={isOpen}
                 style={{
@@ -109,4 +144,4 @@ function Landing() {
     )
 }
 
-export default Landing;
+export default withRouter(Landing);
