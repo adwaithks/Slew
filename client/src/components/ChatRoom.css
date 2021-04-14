@@ -272,6 +272,11 @@
     background: rgb(37, 37, 37);  /* Optional: just make scrollbar invisible */
 }
 
+.avatarGroup {
+    position: relative;
+    z-index: 5;
+}
+
 .chats {
     height: 95%;
     display: flex;

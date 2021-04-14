@@ -9,7 +9,11 @@ const userSchema = mongoose.Schema({
     },
     imageUrl: {
         type: String
-    }
+    },
+    groups: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'PrivateGroup'
+    }]
 },{ timestamps: {
     createdAt: 'created_at' 
 }});

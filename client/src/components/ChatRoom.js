@@ -40,7 +40,7 @@ function ChatRoom(props) {
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`/verify`, {
+            const response = await fetch(`http://localhost:5000/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -252,7 +252,6 @@ function ChatRoom(props) {
 
     const sendMessage = (e) => {
         e.preventDefault();
-        console.log(chatWindowRef.current.scrollHeight)
         if (message.length !== 0) {
             var currentdate = new Date();
             var datetime = currentdate.getDate() + "/"
@@ -341,7 +340,7 @@ function ChatRoom(props) {
                     }
                 </div>
                 <div className="participantsContainer">
-                <AvatarGroup max={5}>
+                <AvatarGroup className="avatarGroup" max={5}>
                     {
                         users.map((each, index) => (
                             <Avatar title={each.name} className="participantsAvatar" alt={each.name} src={each.imageUrl} />
@@ -386,57 +385,33 @@ function ChatRoom(props) {
                             ) :
                                 (allMsg.map((each, index) => (
                                     (each.newComer) ? (
-                                        <div key={index} className="newComer">
+                                        <div className="newComer">
                                             <h3>{each.message}</h3>
                                         </div>
                                     ) : (each.exitmsg) ? (
-                                        <div key={index} className="exitmsg">
+                                        <div className="exitmsg">
                                             <h3>{each.message}</h3>
                                         </div>
                                     ) : (each.audioMsg) ? (
-                                        <div key={index} className="audio-message">
-                                            {
-                                                            index > 0 ? (
-                                                                (allMsg[index - 1].user !== Gpayload.name) ? (
-                                                                    <div className="senderinfo">
-                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
-                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                                        <h5>{each.time}</h5>                                                           
-                                                                    </div>
-                                                                ) : null
-                                                            ) : (
-                                                                <div className="senderinfo">
-                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
-                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                                        <h5>{each.time}</h5>                                                           
-                                                                    </div>
-                                                            )
-                                                            
-                                                        }
+                                        <div className="audio-message">
+                                            
+                                            <div className="senderinfo">
+                                                <div className="avatar">
+                                                    <Avatar className="avatar-icon" alt={Gpayload.name} src={Gpayload.imageUrl} />
+                                                </div>      
+                                                <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                <h5>{each.time}</h5>                                    
+                                            </div>
                                             <audio src={window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/ogg; codecs=opus' }))} controls></audio>
                                         </div>
 
                                     ) : (
                                                     <div key={index} className="message">
-                                                        {
-                                                            index > 0 ? (
-                                                                (allMsg[index - 1].user !== Gpayload.name) ? (
-                                                                    <div className="senderinfo">
-                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
-                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                                        <h5>{each.time}</h5>                                                           
-                                                                    </div>
-                                                                ) : null
-                                                            ) : (
-                                                                <div className="senderinfo">
-                                                                        <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
-                                                                        <h4 style={{ color: each.color || color }}>{each.user}</h4> 
-                                                                        <h5>{each.time}</h5>                                                           
-                                                                    </div>
-                                                            )
-                                                            
-                                                        }
-                                                        
+                                                        <div className="senderinfo">
+                                                            <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                            <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                            <h5>{each.time}</h5>                                                           
+                                                        </div>
                                                         <h5>{each.message || 'Not yet reached'}</h5>
                                                     </div>
                                                 ) 

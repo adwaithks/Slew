@@ -43,7 +43,7 @@ function Auth(props) {
                 buttonText="Login"
                 onSuccess={async (res) => {
                     setGUser(res);
-                    const response = await fetch(`/auth`, {
+                    const response = await fetch(`http://localhost:5000/auth`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json'},
                         body: JSON.stringify({

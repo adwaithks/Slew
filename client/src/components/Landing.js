@@ -44,17 +44,28 @@ function Landing(props) {
     const [pass, setPass] = useState('');
     const [slewName, setSlewName] = useState('');
 
+    socket.on('private-room-creation-complete', (data) => {
+        window.location.href = '/room/' + slewName;
+    });
+
     const submitHandler = (e) => {
+        const roomName = slewName.trim().replace(/\s/g, "");
+        setSlewName(roomName);
+        console.log({
+            slewName: roomName,
+            pass: pass,
+            user: window.localStorage.getItem('email')
+        });
         e.preventDefault();
         if (privacy === false) {
             var id = uuidv4();
             window.location.href = '/room/' + id;
         } else {
             socket.emit('create-private-room', {
-                slewName: slewName,
-                pass: pass
+                slewName: roomName,
+                pass: pass,
+                user: window.localStorage.getItem('email')
             });
-            window.location.href = '/room/' + slewName;
         }
     }
 
@@ -80,7 +91,7 @@ function Landing(props) {
                     buttonText="Login"
                     onSuccess={async (res) => {
                         setGUser(res);
-                        const response = await fetch(`/auth`, {
+                        const response = await fetch(`http://localhost:5000/auth`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json'},
                             body: JSON.stringify({

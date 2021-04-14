@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const path = require('path');
-//const morgan = require('morgan');
+//const path = require('path');
+const morgan = require('morgan');
 const {OAuth2Client} = require('google-auth-library');
 const io = require('socket.io')(server);
 const { v4: uuidv4 } = require('uuid');
@@ -10,12 +10,13 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('./models/userModel');
+const PrivateGroup = require('./models/privateGroupModel');
 
 var privateRooms = [];
 
 app.use(cors());
 app.use(express.json());
-//app.use(morgan('dev'));
+app.use(morgan('dev'));
 
 mongoose.connect(
     "mongodb+srv://ruby:ruby@cluster0.pfsz5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
@@ -25,10 +26,10 @@ mongoose.connect(
     }
 );
 
-app.use(express.static(path.join(__dirname, 'client', 'build')));
+/*app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
-});
+});*/
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;
@@ -89,14 +90,31 @@ app.post('/verify', async (req, res) => {
 });
 
 io.on('connection', socket => {
-    socket.on('create-private-room', data => {
-        var uuid = uuidv4();
+    socket.on('create-private-room', async (data) => {
+        /*var uuid = uuidv4();
         const obj = {
             id: uuid,
             slewName: data.slewName,
             password: data.pass
+        }*/
+        const group = new PrivateGroup({
+            groupName: data.slewName,
+            pass: data.pass,
+            participants: [data.user],
+            admin: data.user
+        });
+        console.log(group);
+        await group.save().then().catch();
+        const user = await User.findOne({
+            email: data.user
+        });
+        if (user) {
+            user.groups.push(group._id);
         }
-        privateRooms.push(obj);
+        await user.save().then().catch();
+        console.log('private room creation finished')
+        socket.emit('private-room-creation-complete', true);
+        //privateRooms.push(obj);
     });
 
     socket.on('videocall-reject', data => {
@@ -117,8 +135,56 @@ io.on('connection', socket => {
 	});
     });
 
-    socket.on('passcode', (pass) => {
-        for(var i=0; i < privateRooms.length; i++) {
+    socket.on('passcode', async (pass) => {
+        
+         const group = await PrivateGroup.findOne({
+             groupName: socket.roomName
+         });
+         if (group) {
+             if (group.pass === pass) {
+                var connectedClients = [];
+                    socket.join(socket.roomName);
+                    var clients = io.sockets.sockets;
+                    clients.forEach(element => {
+                        if (element.roomName == socket.roomName) {
+                            connectedClients.push({
+                                user: element.user,
+                           peerId: element.peerId,
+                           imageUrl: element.imageUrl,
+                           email: element.email
+                            });
+                        }
+                    });
+                    socket.emit('welcome-self-message', {
+                        user: socket.user,
+                        roomName: socket.roomName,
+                        color: socket.color,
+                        peerId: socket.peerId,
+                        pass: true
+                    });
+                    console.log('connectedClients: ' + connectedClients)
+                    io.in(socket.roomName).emit('connected-clients', connectedClients);
+                    socket.broadcast.to(socket.roomName).emit('welcome-message', {
+                        user: socket.user,
+                        roomName: socket.roomName
+                    });
+                    const user = await User.findOne({
+                        email: socket.email
+                    });
+                    if (!user.groups.includes(group._id)) {
+                        user.groups.push(group._id);
+                    }
+                    await user.save().then().catch();
+                    if (!group.participants.includes(socket.email)) {
+                        group.participants.push(socket.email);
+                    }
+                    await group.save().then().catch();
+             }
+         }
+         
+         
+         
+        /**for(var i=0; i < privateRooms.length; i++) {
             if (privateRooms[i].slewName == socket.roomName) {
                 if (privateRooms[i].password == pass) {
                     var connectedClients = [];
@@ -137,8 +203,7 @@ io.on('connection', socket => {
                         user: socket.user,
                         roomName: socket.roomName,
                         color: socket.color,
-                        peerId: socket.peerId,
-                        pass: true
+                        peerId: socket.peerId
                     });
             
                     io.in(socket.roomName).emit('connected-clients', connectedClients);
@@ -146,14 +211,13 @@ io.on('connection', socket => {
                         user: socket.user,
                         roomName: socket.roomName
                     });
-                    //console.log(socket.user + ' joined room: ' + socket.roomName + ' with color: ' + socket.color);                   
                     break;
                 }
-            }
+            }*/
         }
-    });
+    );
 
-    socket.on('join-room', (data) => {
+    socket.on('join-room', async (data) => {
         console.log('data: ')
         console.log(data);
         var private = false;
@@ -167,21 +231,24 @@ io.on('connection', socket => {
         socket.color = color;
         socket.email = data.email;
         socket.imageUrl = data.imageUrl;
-        var test = {
-            peerId: socket.peerId,
-            room: socket.roomName,
-            username: socket.user,
-            color: socket.color
-        }
-        //console.log(test);
-        for(var i=0; i < privateRooms.length; i++) {
+        
+         const group = await PrivateGroup.findOne({
+             groupName: data.roomName 
+         });
+         if (group) private = true;
+
+         
+         console.log('private: ' + private);
+         console.log('admin: ' + group.admin);
+         console.log('data email: ' + data.email);
+        /*for(var i=0; i < privateRooms.length; i++) {
             if (privateRooms[i].slewName == socket.roomName) {
                 private = true;
                 break;
             }
         }
         if (private == true) {
-            socket.emit('pass-required', 'Enter Password')
+            socket.emit('pass-required', 'Enter Password');
         } else {
             socket.join(socket.roomName);
             var clients = io.sockets.sockets;
@@ -194,9 +261,76 @@ io.on('connection', socket => {
                         email: element.email
                     });
                 }
-            });
+            });*/
+
+            if (private == false) {
+                socket.join(socket.roomName);
+               var clients = io.sockets.sockets;
+               clients.forEach(element => {
+                   if (element.roomName == socket.roomName) {
+                       connectedClients.push({
+                           user: element.user,
+                           peerId: element.peerId,
+                           imageUrl: element.imageUrl,
+                           email: element.email
+                       });
+                   }   
+               });
+               socket.emit('welcome-self-message', {
+                   user: socket.user,
+                   roomName: socket.roomName,
+                   color: socket.color,
+                   peerId: socket.peerId,
+                   imageUrl: socket.imageUrl,
+                   email: socket.email
+               });
+       
+               io.in(socket.roomName).emit('connected-clients', connectedClients);
+               socket.broadcast.to(socket.roomName).emit('welcome-message', {
+                   user: socket.user,
+                   roomName: socket.roomName,
+                   imageUrl: socket.imageUrl,
+                   email: socket.email
+               });
+            }
+
+            
+             if (group.admin === data.email && private === true) {
+                 socket.join(socket.roomName);
+                var clients = io.sockets.sockets;
+                clients.forEach(element => {
+                    if (element.roomName == socket.roomName) {
+                        connectedClients.push({
+                            user: element.user,
+                            peerId: element.peerId,
+                            imageUrl: element.imageUrl,
+                            email: element.email
+                        });
+                    }
+                });
+                socket.emit('welcome-self-message', {
+                    user: socket.user,
+                    roomName: socket.roomName,
+                    color: socket.color,
+                    peerId: socket.peerId,
+                    imageUrl: socket.imageUrl,
+                    email: socket.email
+                });
+                io.in(socket.roomName).emit('connected-clients', connectedClients);
+                socket.broadcast.to(socket.roomName).emit('welcome-message', {
+                    user: socket.user,
+                    roomName: socket.roomName,
+                    imageUrl: socket.imageUrl,
+                    email: socket.email
+                });
+             }else {
+                socket.emit('pass-required', 'Enter Password');
+             }
+
+             
+            
     
-            socket.emit('welcome-self-message', {
+            /*socket.emit('welcome-self-message', {
                 user: socket.user,
                 roomName: socket.roomName,
                 color: socket.color,
@@ -211,11 +345,12 @@ io.on('connection', socket => {
                 roomName: socket.roomName,
                 imageUrl: socket.imageUrl,
                 email: socket.email
-            });
-           // console.log(socket.user + 'with email: ' + socket.email + 'joined room: ' + socket.roomName + ' with color: ' + socket.color);
-        }
+            });*/
+        
         
     });
+
+    /** */
 
     socket.on('message-to-server', (msg) => {
         socket.broadcast.to(socket.roomName).emit('message-from-server', msg);
@@ -228,7 +363,9 @@ io.on('connection', socket => {
             if (element.roomName == socket.roomName) {
                 connectedClients.push({
                     user: element.user,
-                    peerId: element.peerId
+                           peerId: element.peerId,
+                           imageUrl: element.imageUrl,
+                           email: element.email
                 });
             }
         });
@@ -236,13 +373,13 @@ io.on('connection', socket => {
         socket.broadcast.to(socket.roomName).emit('user-exit', {
             user: socket.user
         });
-        if (connectedClients.length == 0) {
+        /*if (connectedClients.length == 0) {
             for (var i = privateRooms.length - 1; i >= 0; --i) {
                 if (privateRooms[i].slewName == socket.roomName) {
                     privateRooms.splice(i,1);
                 }
             }
-        }
+        }*/
         console.log('user disconnected !');
     });
 });
