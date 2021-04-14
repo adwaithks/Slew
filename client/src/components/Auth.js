@@ -16,8 +16,12 @@ function Auth(props) {
                     console.log('success called !');
                     console.log(res);
                     setGUser(res);
-                    const response = await fetch(`/auth?tokenId=${res.tokenId}`, {
-                        method: 'GET'
+                    const response = await fetch(`/auth`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            tokenId: res.tokenId
+                        })
                     });
 
                     if (response.status == 200) {

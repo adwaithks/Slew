@@ -16,9 +16,12 @@ function Landing(props) {
             if (!token) {
                 props.history.push('/');
             }
-            var ran = Math.random().toString(36).substring(4);
-            const response = await fetch(`/verify/?token=${token}&${ran}=1`, {
-                method: 'GET'
+            const response = await fetch(`/verify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: token
+                })
             });
 
             if (response.status != 200) {

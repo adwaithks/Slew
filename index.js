@@ -14,6 +14,7 @@ const User = require('./models/userModel');
 var privateRooms = [];
 
 app.use(cors());
+app.use(express.json());
 //app.use(morgan('dev'));
 
 mongoose.connect(
@@ -29,8 +30,8 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
 
-app.get('/auth', async (req, res) => {
-    const tokenId = req.query.tokenId;
+app.post('/auth', async (req, res) => {
+    const tokenId = req.body.tokenId;
     const GOOGLE_CLIENT_ID = "72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com";
     const client = new OAuth2Client(GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
@@ -65,8 +66,8 @@ app.get('/auth', async (req, res) => {
     });
 });
 
-app.get('/verify', async (req, res) => {
-    const jwtToken = req.query.token;
+app.post('/verify', async (req, res) => {
+    const jwtToken = req.body.token;
     
     try {
         const decoded = jwt.verify(jwtToken, 'secretcode');
