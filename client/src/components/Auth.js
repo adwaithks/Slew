@@ -27,7 +27,7 @@ function Auth(props) {
             } else {
                 const res = await response.json();
                 setGPayload(res);
-                props.history.push('/create');
+                window.location.href = "/create"
             }
         }
         main();
@@ -39,7 +39,7 @@ function Auth(props) {
         <div className="Auth">
             <GoogleLogin
                 className="googleLogin-auth"
-                clientId={process.env.CLIENT_ID}
+                clientId={'72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com'}
                 buttonText="Login"
                 onSuccess={async (res) => {
                     setGUser(res);

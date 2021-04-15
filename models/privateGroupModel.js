@@ -10,7 +10,36 @@ const privateGroupSchema = mongoose.Schema({
     participants: [String],
     admin: {
         type: String
-    }
+    },
+    chats: [{
+        newComer: {
+            type: Boolean
+        },
+        exitmsg: {
+            type: Boolean
+        },
+        chunks: [{
+            type: Buffer
+        }],
+        audioMsg: {
+            type: Boolean
+        },
+        user: {
+            type: String
+        },
+        message: {
+            type: String
+        },
+        email: {
+            type: String
+        },
+        time: {
+            type: String
+        },
+        imageUrl: {
+            type: String
+        }
+    }]
 },{ timestamps: {
     createdAt: 'created_at' 
 }});

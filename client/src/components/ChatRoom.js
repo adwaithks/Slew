@@ -57,6 +57,28 @@ function ChatRoom(props) {
         }
 
         main();
+
+        const chats = async () => {
+            console.log('chats called');
+            const chatResponse = await fetch(`http://localhost:5000/chats`, {
+                method: 'POST',
+                headers: {'Access-Token': window.localStorage.getItem('AccessToken')},
+                body: JSON.stringify({
+                    roomName: window.location.href.split('/')[4]
+                })
+            });
+            if (chatResponse.status === 200) {
+                try {
+                    const chatRes = await chatResponse.json();
+                    console.log('private');
+                    console.log(chatRes)
+                    setAllMsg(chatRes);
+                } catch (error) {
+                    console.log('not private')
+                }
+            } 
+        }
+        chats();
         if (Guser.profileObj) {
             window.localStorage.setItem('user', Guser.profileObj.name)
             window.localStorage.setItem('imageUrl', Guser.profileObj.imageUrl)
@@ -77,6 +99,7 @@ function ChatRoom(props) {
                 imageUrl: Guser.profileObj ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
                 email: Guser.profileObj ? Guser.profileObj.email : window.localStorage.getItem('email')
             });
+            console.log('emitted join-room')
 
             // password required - protected room
             socket.on('pass-required', data => {
@@ -469,7 +492,16 @@ function ChatRoom(props) {
                                             color: color,
                                             audioMsg: true,
                                             time: date_time
-                                        }])
+                                        }]);
+                                        console.log({
+                                            chunks: chunks,
+                                            user: Gpayload.name,
+                                            imageUrl: Gpayload.imageUrl,
+                                            color: color,
+                                            audioMsg: true,
+                                            time: date_time
+                                        });
+                                        console.log(chunks)
                                         chunks = [];
                                         mediaRecorder.stream.getTracks().forEach(track => track.stop()); // stop each of them
                                         setAudioModal(false);

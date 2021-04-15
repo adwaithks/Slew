@@ -56,7 +56,7 @@ app.post('/auth', async (req, res) => {
         name: payload.name,
         email: payload.email,
         imageUrl: payload.picture
-    }, process.env.JWT_SECRET, {expiresIn: '2 days'});
+    }, 'secret', {expiresIn: '2 days'});
 
     res.status(200).json({
         name: payload.name,
@@ -66,11 +66,32 @@ app.post('/auth', async (req, res) => {
     });
 });
 
+app.post('/chats', async (req, res) => {
+    const jwtTokenInc = req.headers['access-token'];
+    const decoded = jwt.verify(jwtTokenInc, 'secret');
+        const email = decoded.email;
+        const user = await User.findOne({
+            email: email
+        });
+        if (!user) return res.status(403).json('Forbidden');
+
+        const group = await PrivateGroup.findOne({
+            groupName: req.body.roomName
+        });
+        console.log('grpieeee');
+        console.log(group);
+        
+        if (!group || !group.participants.includes(email)) {
+            return
+        }
+        res.status(200).json(group.chats);
+})
+
 app.post('/verify', async (req, res) => {
     const jwtToken = req.body.token;
     
     try {
-        const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
+        const decoded = jwt.verify(jwtToken, 'secret');
         const email = decoded.email;
         const user = await User.findOne({
             email: email
@@ -234,12 +255,10 @@ io.on('connection', socket => {
          const group = await PrivateGroup.findOne({
              groupName: data.roomName 
          });
+         
          if (group) private = true;
-
          
          console.log('private: ' + private);
-         console.log('admin: ' + group.admin);
-         console.log('data email: ' + data.email);
         /*for(var i=0; i < privateRooms.length; i++) {
             if (privateRooms[i].slewName == socket.roomName) {
                 private = true;
@@ -283,6 +302,8 @@ io.on('connection', socket => {
                    imageUrl: socket.imageUrl,
                    email: socket.email
                });
+               console.log('connectedClients');
+               console.log(connectedClients);
        
                io.in(socket.roomName).emit('connected-clients', connectedClients);
                socket.broadcast.to(socket.roomName).emit('welcome-message', {
@@ -351,7 +372,34 @@ io.on('connection', socket => {
 
     /** */
 
-    socket.on('message-to-server', (msg) => {
+    socket.on('message-to-server', async (msg) => {
+        console.log('message:::::');
+        console.log(msg);
+        const group = await PrivateGroup.findOne({
+            groupName: socket.roomName
+        });
+        if (group) {
+            group.chats.push({
+                user: msg.user,
+                email: socket.email,
+                imageUrl: msg.imageUrl,
+                time: msg.time,
+                message: msg.message,
+                newComer: msg.newComer ? true : false,
+                exitMsg: msg.exitMsg ? true: false,
+                audioMsg: msg.audioMsg ? true : false,
+                chunks: msg.chunks ? msg.chunks : null,
+            });
+            console.log('chat ::::::')
+            console.log({
+                user: msg.user,
+                email: socket.email,
+                imageUrl: msg.imageUrl,
+                time: msg.time,
+                message: msg.message
+            })
+            await group.save().then().catch();
+        }
         socket.broadcast.to(socket.roomName).emit('message-from-server', msg);
     });
 
