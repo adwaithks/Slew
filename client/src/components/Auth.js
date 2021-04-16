@@ -64,13 +64,11 @@ function Auth(props) {
                             window.localStorage.setItem('email', res.email);
                             const accessToken = res.accessToken;
                             window.localStorage.setItem('AccessToken', accessToken);
-                            props.history.push('/create');
+                            window.location.href = "/create";
                         } catch (error) {
                             console.log('errorrrrr');
                             console.log(error);
                         }
-                        
-                        
                     }
                 }}
                 

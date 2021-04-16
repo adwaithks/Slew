@@ -6,6 +6,7 @@ import Avatar from '@material-ui/core/Avatar';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Alert from '@material-ui/lab/Alert';
 import Modal from 'react-modal';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
 import AvatarGroup from '@material-ui/lab/AvatarGroup';
 import PhoneIcon from '@material-ui/icons/Phone';
@@ -60,9 +61,13 @@ function ChatRoom(props) {
 
         const chats = async () => {
             console.log('chats called');
+            console.log(window.location.href.split('/')[4]);
             const chatResponse = await fetch(`http://localhost:5000/chats`, {
                 method: 'POST',
-                headers: {'Access-Token': window.localStorage.getItem('AccessToken')},
+                headers: {
+                    'Access-Token': window.localStorage.getItem('AccessToken'),
+                    'Content-Type': 'application/json'
+            },
                 body: JSON.stringify({
                     roomName: window.location.href.split('/')[4]
                 })
@@ -371,6 +376,11 @@ function ChatRoom(props) {
                     }
                 </AvatarGroup>  
                 </div>
+                <div className="exitButton" onClick={async () => {
+                    window.location.href = "/create"
+                }}>
+                    <ExitToAppIcon />
+                </div>
             </div>
             <div className="main-window">
                 <div className={usersExp ? "users" : "nodisplay"}>
@@ -477,6 +487,7 @@ function ChatRoom(props) {
                                         + currentdate.getMinutes() + ":"
                                         + currentdate.getSeconds();
                                     mediaRecorder.onstop = function (e) {
+                                        console.log(typeof chunks);
                                         socket.emit('message-to-server', {
                                             chunks: chunks,
                                             user: Gpayload.name,
@@ -493,15 +504,7 @@ function ChatRoom(props) {
                                             audioMsg: true,
                                             time: date_time
                                         }]);
-                                        console.log({
-                                            chunks: chunks,
-                                            user: Gpayload.name,
-                                            imageUrl: Gpayload.imageUrl,
-                                            color: color,
-                                            audioMsg: true,
-                                            time: date_time
-                                        });
-                                        console.log(chunks)
+                                        console.log(typeof chunks)
                                         chunks = [];
                                         mediaRecorder.stream.getTracks().forEach(track => track.stop()); // stop each of them
                                         setAudioModal(false);

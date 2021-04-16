@@ -1,11 +1,10 @@
-
 .Chatroom {
     width: 100%;
     height: 100vh;
     overflow-y: hidden;
 }
 
-.nodisplay  {
+.nodisplay {
     display: none;
 }
 
@@ -59,7 +58,6 @@
     flex-direction: column;
     border-bottom-left-radius: 5px;
     border-right: yellowgreen solid 3px;
-
 }
 
 .user {
@@ -126,8 +124,7 @@
     transform: translate(-50%);
 }
 
-
-.callendincoming-iconContainer>* {
+.callendincoming-iconContainer > * {
     color: white;
 }
 
@@ -155,20 +152,20 @@
 }
 
 @keyframes pulse2 {
-	0% {
-		transform: scale(0.90);
-		box-shadow: 0 0 0 0 rgb(0, 0, 0);
-	}
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgb(0, 0, 0);
+    }
 
-	70% {
-		transform: scale(1);
-		box-shadow: 0 0 0 10 rgb(0, 0, 0);
-	}
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10 rgb(0, 0, 0);
+    }
 
-	100% {
-		transform: scale(0.90);
-		box-shadow: 0 0 0 0 rgb(0, 0, 0);
-	}
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgb(0, 0, 0);
+    }
 }
 
 .incoming-videocall-text {
@@ -178,12 +175,11 @@
     color: white;
 }
 
-
 .callaccept-iconContainer > * {
     color: white;
 }
 
-.callend-iconContainer>* {
+.callend-iconContainer > * {
     color: white;
 }
 
@@ -234,8 +230,6 @@
     margin-right: 5px;
 }
 
-
-
 .user-video {
     position: absolute;
     bottom: 0;
@@ -248,13 +242,11 @@
     z-index: 100;
 }
 
-
-
 .video-modal {
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
     width: 100%;
     height: 100%;
     margin: auto;
@@ -268,13 +260,24 @@
 }
 
 ::-webkit-scrollbar {
-    width: 5px;  /* Remove scrollbar space */
-    background: rgb(37, 37, 37);  /* Optional: just make scrollbar invisible */
+    width: 5px; /* Remove scrollbar space */
+    background: rgb(37, 37, 37); /* Optional: just make scrollbar invisible */
 }
 
-.avatarGroup {
-    position: relative;
-    z-index: 5;
+.exitButton {
+    background-color: #ff3300;
+    border-radius: 5px;
+    cursor: pointer;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.exitButton:hover {
+    opacity: 0.7;
+}
+
+.exitButton > * {
+    font-size: 33px !important;
 }
 
 .chats {
@@ -301,7 +304,6 @@
     transform: translate(-50%, 50%);
 }
 
-
 .modal {
     position: absolute;
     border-radius: 5px;
@@ -325,7 +327,6 @@
     color: white;
     margin-top: 25px;
 }
-
 
 .modal > .nameForm > input {
     width: 85%;
@@ -436,7 +437,6 @@
     margin-top: 7px;
 }
 
-
 .message {
     height: fit-content;
     float: left;
@@ -457,7 +457,7 @@
 }
 
 .participantsContainer {
-    width: 90%;
+    width: 80%;
     display: flex;
     margin-left: auto;
     margin-right: auto;
@@ -507,7 +507,6 @@
     margin-top: 2px;
 }
 
-
 .group-intro {
     background-color: greenyellow;
     display: flex;
@@ -532,7 +531,6 @@
     margin-bottom: 30px;
     font-weight: 400;
 }
-
 
 .group-intro-copylink {
     background-color: rgb(36, 36, 36);
@@ -560,8 +558,6 @@
     color: greenyellow !important;
     font-size: 25px !important;
 }
-
-
 
 .audio-modal {
     position: absolute;
@@ -599,7 +595,7 @@ audio {
 .audio-icon-container {
     border-radius: 50%;
     width: 60px;
-    height:60px;
+    height: 60px;
     display: flex;
     cursor: pointer;
     margin-bottom: 10px;
@@ -608,10 +604,9 @@ audio {
     align-items: center;
 }
 
-audio::-webkit-media-controls-panel{
+audio::-webkit-media-controls-panel {
     background-color: rgb(174, 255, 12) !important;
 }
-
 
 .recording-mic-icon {
     color: rgb(223, 0, 0) !important;
@@ -621,22 +616,21 @@ audio::-webkit-media-controls-panel{
 }
 
 @keyframes pulse {
-	0% {
-		transform: scale(0.90);
-		box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
-	}
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
+    }
 
-	70% {
-		transform: scale(1);
-		box-shadow: 0 0 0 10px rgba(201, 0, 0, 0.7);
-	}
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(201, 0, 0, 0.7);
+    }
 
-	100% {
-		transform: scale(0.90);
-		box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
-	}
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(201, 0, 0, 0.7);
+    }
 }
-
 
 .notrecording-mic-icon {
     color: rgb(156, 255, 8) !important;
@@ -685,7 +679,6 @@ audio::-webkit-media-controls-panel{
     height: 40px !important;
 }
 
-
 .image-icon:hover {
     transform: scale(1.1);
 }
@@ -723,7 +716,6 @@ audio::-webkit-media-controls-panel{
         word-break: break-all;
         width: fit-content;
     }
-    
 
     .user-video {
         height: 160px;
@@ -754,7 +746,6 @@ audio::-webkit-media-controls-panel{
         bottom: 0;
         width: 95%;
     }
-    
 
     .main-window {
         width: 95%;
@@ -772,7 +763,7 @@ audio::-webkit-media-controls-panel{
     .users {
         width: 100%;
     }
-    
+
     .video-callincoming-controls {
         width: 80%;
         height: 120px;
@@ -784,7 +775,6 @@ audio::-webkit-media-controls-panel{
         margin-top: 200px !important;
         z-index: 2000;
     }
-
 
     .senderinfo > h4 {
         margin-right: 6px;

@@ -34,7 +34,7 @@ function Landing(props) {
             }
         }
         main();
-    }, []);
+    },[]);
 
     const {Gpayload, setGPayload, Guser, setGUser} = useContext(UserContext);
 
@@ -48,7 +48,13 @@ function Landing(props) {
         window.location.href = '/room/' + slewName;
     });
 
+    socket.on('public-room-creation-complete', (id) => {
+        window.location.href = '/room/' + id;
+    })
+
     const submitHandler = (e) => {
+        e.preventDefault();
+
         const roomName = slewName.trim().replace(/\s/g, "");
         setSlewName(roomName);
         console.log({
@@ -56,10 +62,13 @@ function Landing(props) {
             pass: pass,
             user: window.localStorage.getItem('email')
         });
-        e.preventDefault();
         if (privacy === false) {
             var id = uuidv4();
-            window.location.href = '/room/' + id;
+            socket.emit('create-public-room', {
+                slewName: id,
+                email: window.localStorage.getItem('email'),
+            });
+            console.log('emitted')
         } else {
             socket.emit('create-private-room', {
                 slewName: roomName,

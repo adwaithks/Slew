@@ -13,6 +13,10 @@ const userSchema = mongoose.Schema({
     groups: [{
         type: mongoose.Types.ObjectId,
         ref: 'PrivateGroup'
+    }],
+    publicGroups: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'PublicGroup'
     }]
 },{ timestamps: {
     createdAt: 'created_at' 

@@ -10,6 +10,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('./models/userModel');
+const PublicGroup = require('./models/publicGroupModel')
 const PrivateGroup = require('./models/privateGroupModel');
 require('dotenv').config();
 
@@ -18,12 +19,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 mongoose.connect(
-    process.env.MONGODB_URI,
+    'mongodb+srv://ruby:ruby@cluster0.pfsz5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
     }
 );
+
+
 
 /*app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
@@ -68,7 +71,9 @@ app.post('/auth', async (req, res) => {
 
 app.post('/chats', async (req, res) => {
     const jwtTokenInc = req.headers['access-token'];
+    console.log(req.body.roomName)
     const decoded = jwt.verify(jwtTokenInc, 'secret');
+    console.log('decoded: ' + decoded)
         const email = decoded.email;
         const user = await User.findOne({
             email: email
@@ -117,6 +122,10 @@ io.on('connection', socket => {
             slewName: data.slewName,
             password: data.pass
         }*/
+        const isGroup = await PrivateGroup.findOne({
+            groupName: socket.roomName
+        });
+        if (isGroup) return;
         const group = new PrivateGroup({
             groupName: data.slewName,
             pass: data.pass,
@@ -237,6 +246,29 @@ io.on('connection', socket => {
         }
     );
 
+    socket.on('create-public-room', async (data) => {
+        console.log('creating public group');
+        const isGroup = await PublicGroup.findOne({
+            roomName: data.slewName
+        });
+        if (!isGroup) {
+            const newPublicGroup = new PublicGroup({
+                groupName: data.slewName,
+                admin: data.email,
+                participants: [data.email]
+            });
+            await newPublicGroup.save().then().catch();
+
+            const user = await User.findOne({
+                email: data.email
+            });
+            user.publicGroups.push(newPublicGroup._id);
+            await user.save().then().catch();
+
+            socket.emit('public-room-creation-complete', data.slewName);
+        }
+    })
+
     socket.on('join-room', async (data) => {
         console.log('data: ')
         console.log(data);
@@ -282,6 +314,19 @@ io.on('connection', socket => {
             });*/
 
             if (private == false) {
+                const group = await PublicGroup.findOne({
+                    groupName: data.roomName
+                });
+                
+                if (group && !group.participants.includes(data.email)) {
+                    group.participants.push(data.email);
+                    await group.save().then().catch();
+                    const user = await User.findOne({
+                        email: data.email
+                    });
+                    user.publicGroups.push(group._id);
+                    await user.save().then().catch();
+                }
                 socket.join(socket.roomName);
                var clients = io.sockets.sockets;
                clients.forEach(element => {
@@ -312,6 +357,7 @@ io.on('connection', socket => {
                    imageUrl: socket.imageUrl,
                    email: socket.email
                });
+               return;
             }
 
             
