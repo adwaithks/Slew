@@ -41,7 +41,7 @@ function ChatRoom(props) {
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`http://localhost:5000/verify`, {
+            const response = await fetch(`/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -62,7 +62,7 @@ function ChatRoom(props) {
         const chats = async () => {
             console.log('chats called');
             console.log(window.location.href.split('/')[4]);
-            const chatResponse = await fetch(`http://localhost:5000/chats`, {
+            const chatResponse = await fetch(`/chats`, {
                 method: 'POST',
                 headers: {
                     'Access-Token': window.localStorage.getItem('AccessToken'),

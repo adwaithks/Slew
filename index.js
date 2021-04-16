@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-//const path = require('path');
-const morgan = require('morgan');
+const path = require('path');
+//const morgan = require('morgan');
 const {OAuth2Client} = require('google-auth-library');
 const io = require('socket.io')(server);
 const { v4: uuidv4 } = require('uuid');
@@ -12,14 +12,14 @@ const mongoose = require('mongoose');
 const User = require('./models/userModel');
 const PublicGroup = require('./models/publicGroupModel')
 const PrivateGroup = require('./models/privateGroupModel');
-require('dotenv').config();
+//require('dotenv').config();
 
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
+//app.use(morgan('dev'));
 
 mongoose.connect(
-    'mongodb+srv://ruby:ruby@cluster0.pfsz5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+    process.env.MONGODB_URI,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -28,10 +28,10 @@ mongoose.connect(
 
 
 
-/*app.use(express.static(path.join(__dirname, 'client', 'build')));
+app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
-});*/
+});
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;
@@ -59,7 +59,7 @@ app.post('/auth', async (req, res) => {
         name: payload.name,
         email: payload.email,
         imageUrl: payload.picture
-    }, 'secret', {expiresIn: '2 days'});
+    }, process.env.JWT_SECRET, {expiresIn: '2 days'});
 
     res.status(200).json({
         name: payload.name,
@@ -72,7 +72,7 @@ app.post('/auth', async (req, res) => {
 app.post('/chats', async (req, res) => {
     const jwtTokenInc = req.headers['access-token'];
     console.log(req.body.roomName)
-    const decoded = jwt.verify(jwtTokenInc, 'secret');
+    const decoded = jwt.verify(jwtTokenInc, process.env.JWT_SECRET);
     console.log('decoded: ' + decoded)
         const email = decoded.email;
         const user = await User.findOne({
@@ -83,8 +83,6 @@ app.post('/chats', async (req, res) => {
         const group = await PrivateGroup.findOne({
             groupName: req.body.roomName
         });
-        console.log('grpieeee');
-        console.log(group);
         
         if (!group || !group.participants.includes(email)) {
             return
@@ -96,7 +94,7 @@ app.post('/verify', async (req, res) => {
     const jwtToken = req.body.token;
     
     try {
-        const decoded = jwt.verify(jwtToken, 'secret');
+        const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
         const email = decoded.email;
         const user = await User.findOne({
             email: email

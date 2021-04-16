@@ -14,7 +14,7 @@ function Auth(props) {
             if (!token) {
                 return
             }
-            const response = await fetch(`http://localhost:5000/verify`, {
+            const response = await fetch(`/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -39,11 +39,11 @@ function Auth(props) {
         <div className="Auth">
             <GoogleLogin
                 className="googleLogin-auth"
-                clientId={'72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com'}
+                clientId={process.env.CLIENT_ID}
                 buttonText="Login"
                 onSuccess={async (res) => {
                     setGUser(res);
-                    const response = await fetch(`http://localhost:5000/auth`, {
+                    const response = await fetch(`/auth`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json'},
                         body: JSON.stringify({

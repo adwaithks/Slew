@@ -18,7 +18,7 @@ function Landing(props) {
             if (!token) {
                 props.history.push('/');
             }
-            const response = await fetch(`http://localhost:5000/verify`, {
+            const response = await fetch(`/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -93,14 +93,14 @@ function Landing(props) {
                 <div></div>
                 <div className="avatarContainer-landing">
                 <GoogleLogin
-                    clientId={'72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com'}
+                    clientId={process.env.CLIENT_ID}
                     render={renderProps => (
                     <Avatar onClick={renderProps.onClick} disabled={renderProps.disabled} alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} />
                     )}
                     buttonText="Login"
                     onSuccess={async (res) => {
                         setGUser(res);
-                        const response = await fetch(`http://localhost:5000/auth`, {
+                        const response = await fetch(`/auth`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json'},
                             body: JSON.stringify({
