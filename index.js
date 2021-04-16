@@ -35,7 +35,7 @@ app.get('*', (req, res) => {
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;
-    const GOOGLE_CLIENT_ID = process.env.CLIENT_ID;
+    const GOOGLE_CLIENT_ID = '72427653180-11kkrqe0k389kvkr598gcu27fo4b70vg.apps.googleusercontent.com';
     const client = new OAuth2Client(GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
         idToken: tokenId,
