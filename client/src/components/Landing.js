@@ -1,10 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Modal from 'react-modal';
+import {withRouter} from 'react-router-dom'
 import './Landing.css';
 import { v4 as uuidv4 } from 'uuid';
 import { socket } from '../socket';
+import Avatar from '@material-ui/core/Avatar';
+import { UserContext } from '../context/UserContext';
+import { GoogleLogin } from 'react-google-login';
 
-function Landing() {
+
+function Landing(props) {
+
+
+    useEffect(() => {
+        const main = async () => {
+            const token = window.localStorage.getItem('AccessToken');
+            if (!token) {
+                props.history.push('/');
+            }
+            const response = await fetch(`/verify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: token
+                })
+            });
+
+            if (response.status != 200) {
+                props.history.push('/');
+            } else {
+                const res = await response.json();
+                setGPayload(res);
+            }
+        }
+        main();
+    },[]);
+
+    const {Gpayload, setGPayload, Guser, setGUser} = useContext(UserContext);
 
     const [isOpen, setIsOpen] = useState(false);
     const [privacy, setPrivacy] = useState(false);
@@ -12,26 +44,44 @@ function Landing() {
     const [pass, setPass] = useState('');
     const [slewName, setSlewName] = useState('');
 
+    socket.on('private-room-creation-complete', (data) => {
+        window.location.href = '/room/' + slewName;
+    });
+
+    socket.on('public-room-creation-complete', (id) => {
+        window.location.href = '/room/' + id;
+    })
+
     const submitHandler = (e) => {
         e.preventDefault();
-        window.localStorage.removeItem('user');
-        if (privacy == false) {
+
+        const roomName = slewName.trim().replace(/\s/g, "");
+        setSlewName(roomName);
+        console.log({
+            slewName: roomName,
+            pass: pass,
+            user: window.localStorage.getItem('email')
+        });
+        if (privacy === false) {
             var id = uuidv4();
-            window.location.href = '/room/' + id;
+            socket.emit('create-public-room', {
+                slewName: id,
+                email: window.localStorage.getItem('email'),
+            });
+            console.log('emitted')
         } else {
             socket.emit('create-private-room', {
-                slewName: slewName,
-                pass: pass
+                slewName: roomName,
+                pass: pass,
+                user: window.localStorage.getItem('email')
             });
-            window.location.href = '/room/' + slewName;
         }
     }
 
     const joinHandler = (e) => {
         e.preventDefault();
-        if (slewName.length != 0) {
-            window.localStorage.removeItem('user');
-            window.location.href = '/room/' + slewName;
+        if (slewName.length !== 0) {
+            window.location.href = '/room/' + slewName.trim().replace(/\s/g, "");
         }
 
     }
@@ -39,6 +89,60 @@ function Landing() {
 
     return (
         <div className="Landing">
+            <div className="userTab">
+                <div></div>
+                <div className="avatarContainer-landing">
+                <GoogleLogin
+                    clientId={process.env.CLIENT_ID}
+                    render={renderProps => (
+                    <Avatar onClick={renderProps.onClick} disabled={renderProps.disabled} alt={Gpayload.name ? Gpayload.name : null } src={Gpayload.imageUrl ? Gpayload.imageUrl : ''} />
+                    )}
+                    buttonText="Login"
+                    onSuccess={async (res) => {
+                        setGUser(res);
+                        const response = await fetch(`/auth`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                tokenId: res.tokenId
+                            })
+                        });
+    
+                        if (response.status == 200) {
+                            try {
+                                const res = await response.json();
+                                setGPayload({
+                                    name: res.name,
+                                    email: res.email,
+                                    imageUrl: res.imageUrl
+                                });
+                                console.log({
+                                    name: res.name,
+                                    email: res.email,
+                                    imageUrl: res.imageUrl
+                                })
+                                window.localStorage.setItem('user', res.name);
+                                window.localStorage.setItem('imageUrl', res.imageUrl);
+                                window.localStorage.setItem('email', res.email);
+                                const accessToken = res.accessToken;
+                                window.localStorage.setItem('AccessToken', accessToken);
+                                props.history.push('/create');
+                            } catch (error) {
+                                console.log('errorrrrr');
+                                console.log(error);
+                            }
+                            
+                            
+                        }
+                    }}
+                    onFailure={(res) => {
+                        console.log('failed');
+                        console.log(res);
+                        }}
+                    cookiePolicy={'single_host_origin'}
+                />
+                </div>
+            </div>
             <Modal
                 isOpen={isOpen}
                 style={{
@@ -109,4 +213,4 @@ function Landing() {
     )
 }
 
-export default Landing;
+export default withRouter(Landing);

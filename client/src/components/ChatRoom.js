@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import SendIcon from '@material-ui/icons/Send';
+import {withRouter} from 'react-router-dom';
+import Avatar from '@material-ui/core/Avatar';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Alert from '@material-ui/lab/Alert';
 import Modal from 'react-modal';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
+import AvatarGroup from '@material-ui/lab/AvatarGroup';
 import PhoneIcon from '@material-ui/icons/Phone';
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
@@ -14,6 +18,8 @@ import CallEndIcon from '@material-ui/icons/CallEnd';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import { socket } from '../socket';
 import Peer from 'peerjs';
+import { UserContext } from '../context/UserContext';
+
 
 var temp = '';
 var mediaRecorder = null;
@@ -26,52 +32,79 @@ var otherPeer;
 var incomingVideocallUsername;
 
 
-function ChatRoom() {
-    const videoEl = useRef(null);
-    const peerVideoEl = useRef(null);
-    const [isAudioRec, setIsAudioRec] = useState(false);
-    const [videoCalling, setVideoCalling] = useState('');
-    const [callState, setCallState] = useState({})
-    const [users, setUsers] = useState([]);
-    const [videoModalOpen, setVideoModalOpen] = useState(false);
-    const [usersExp, setUsersExp] = useState(false);
-    const [roomName, setRoomName] = useState('');
-    const [micState, setMicState] = useState(false);
-    const [videoState, setVideoState] = useState(false);
-    const [connecting, setConnecting] = useState(false);
-    const [streamState, setStream] = useState();
-    const [pass, setPass] = useState('');
-    const [passModalIsOpen, setPassModalIsOpen] = useState(false);
-    const [msgOrAudio, setMsgOrAudio] = useState('audio');
-    const [audioModal, setAudioModal] = useState(false);
-    const [datetime, setDateTime] = useState('');
-    const [color, setColor] = useState('');
-    const [name, setName] = useState('');
-    const [allMsg, setAllMsg] = useState([]);
-    const [snackMsg, setSnackMsg] = useState('');
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [snackOpen, setSnackOpen] = useState(false);
-    const [message, setMessage] = useState('');
-
+function ChatRoom(props) {
 
 
     useEffect(() => {
-        requestNotifPerm();
-        //window.localStorage.removeItem('user');
-        if (!window.localStorage.getItem('user')) {
-            setModalIsOpen(true);
-            //inputRef.current.focus();
-        }
-        else {
-            var roomName = window.location.href.split('/')[4];
-            setRoomName(roomName);
-            var user = window.localStorage.getItem('user');
-
-            // join room
-            socket.emit('join-room', {
-                user: user,
-                roomName: roomName
+        const main = async () => {
+            const token = window.localStorage.getItem('AccessToken');
+            if (!token) {
+                props.history.push('/');
+            }
+            const response = await fetch(`/verify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: token
+                })
             });
+
+            if (response.status !== 200) {
+                props.history.push('/');
+            } else {
+                const res = await response.json();
+                setGPayload(res);
+            }
+        }
+
+        main();
+
+        const chats = async () => {
+            console.log('chats called');
+            console.log(window.location.href.split('/')[4]);
+            const chatResponse = await fetch(`/chats`, {
+                method: 'POST',
+                headers: {
+                    'Access-Token': window.localStorage.getItem('AccessToken'),
+                    'Content-Type': 'application/json'
+            },
+                body: JSON.stringify({
+                    roomName: window.location.href.split('/')[4]
+                })
+            });
+            if (chatResponse.status === 200) {
+                try {
+                    const chatRes = await chatResponse.json();
+                    console.log('private');
+                    console.log(chatRes)
+                    setAllMsg(chatRes);
+                } catch (error) {
+                    console.log('not private')
+                }
+            } 
+        }
+        chats();
+        if (Guser.profileObj) {
+            window.localStorage.setItem('user', Guser.profileObj.name)
+            window.localStorage.setItem('imageUrl', Guser.profileObj.imageUrl)
+            window.localStorage.setItem('email', Guser.profileObj.email);
+            console.log('Guser: ')
+            console.log(Guser);
+        }
+            
+            const roomName = window.location.href.split('/')[4];
+            window.localStorage.setItem('roomName', roomName);
+            requestNotifPerm();
+            setRoomName(roomName);
+
+
+            socket.emit('join-room', {
+                user: Guser.profileObj ? Guser.profileObj.name : window.localStorage.getItem('user'),
+                roomName: (roomName) ? roomName : window.localStorage.getItem('roomName'),
+                imageUrl: Guser.profileObj ? Guser.profileObj.imageUrl : window.localStorage.getItem('imageUrl'),
+                email: Guser.profileObj ? Guser.profileObj.email : window.localStorage.getItem('email')
+            });
+            console.log('emitted join-room')
 
             // password required - protected room
             socket.on('pass-required', data => {
@@ -93,12 +126,12 @@ function ChatRoom() {
                     call = call;
                     setCallState(call);
                     otherPeer = call.peer;
-                    console.log(call);
+                    //console.log(call);
                     setVideoCalling('incoming');
                     setVideoModalOpen(true);
                     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
-                        peerVideoEl.current.srcObject = stream;
                         setStream(stream);
+                        peerVideoEl.current.srcObject = stream;
                         socket.on('videocall-rejected', (data) => {
                             setConnecting(false);
                             closeVideo(stream, data);
@@ -130,6 +163,9 @@ function ChatRoom() {
 
             socket.on('connected-clients', (connectedClients) => {
                 setUsers(connectedClients);
+                console.log('connectedClients');
+                console.log(connectedClients);
+
             });
 
             socket.on('message-from-server', (msg) => {
@@ -140,11 +176,45 @@ function ChatRoom() {
             return () => {
                 socket.disconnect();
             }
-        }
+        
     }, []);
 
+
+
+    const {Guser, setGUser, Gpayload, setGPayload} = useContext(UserContext);
+    const videoEl = useRef(null);
+    const chatWindowRef = useRef(null);
+    const peerVideoEl = useRef(null);
+    const [isAudioRec, setIsAudioRec] = useState(false);
+    const [videoCalling, setVideoCalling] = useState('');
+    const [callState, setCallState] = useState({})
+    const [users, setUsers] = useState([]);
+    const [videoModalOpen, setVideoModalOpen] = useState(false);
+    const [usersExp, setUsersExp] = useState(false);
+    const [roomName, setRoomName] = useState('');
+    const [micState, setMicState] = useState(false);
+    const [videoState, setVideoState] = useState(false);
+    const [connecting, setConnecting] = useState(false);
+    const [streamState, setStream] = useState({});
+    const [pass, setPass] = useState('');
+    const [passModalIsOpen, setPassModalIsOpen] = useState(false);
+    const [msgOrAudio, setMsgOrAudio] = useState('audio');
+    const [audioModal, setAudioModal] = useState(false);
+    const [datetime, setDateTime] = useState('');
+    const [color, setColor] = useState('');
+    const [name, setName] = useState('');
+    const [allMsg, setAllMsg] = useState([]);
+    const [snackMsg, setSnackMsg] = useState('');
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [snackOpen, setSnackOpen] = useState(false);
+    const [message, setMessage] = useState('');
+
+
+
+    
+
     function displayNotification(msg) {
-        if (Notification.permission == 'granted' && online == false) {
+        if (Notification.permission === 'granted' && online === false) {
             navigator.serviceWorker.getRegistration().then(function (reg) {
                 var options = {
                     body: msg.message,
@@ -163,93 +233,6 @@ function ChatRoom() {
     const requestNotifPerm = () => {
         Notification.requestPermission(function (status) {
             console.log('notif perm: ' + status);
-        });
-    }
-
-    const connectClient = () => {
-        //inputRef.current.focus();
-        document.addEventListener("visibilitychange", event => {
-            if (document.visibilityState == "visible") {
-                console.log('online');
-                online = true;
-            } else {
-                console.log('offline');
-                online = false;
-            }
-        });
-
-        var roomName = window.location.href.split('/')[4];
-        setRoomName(roomName);
-        var user = window.localStorage.getItem('user');
-
-        // join room
-        socket.emit('join-room', {
-            user: user,
-            roomName: roomName
-        });
-
-        // password required - protected room
-        socket.on('pass-required', data => {
-            setPassModalIsOpen(true);
-        });
-
-        socket.on('incoming-videocall', data => {
-            incomingVideocallUsername = data;
-        })
-
-        // alert self you have joined room
-        socket.on('welcome-self-message', data => {
-            setModalIsOpen(false);
-            setPassModalIsOpen(false);
-            setColor(data.color);
-            peerId = data.peerId;
-            peer = new Peer(peerId);
-            peer.on('call', (call) => {
-                call = call;
-                setCallState(call);
-                otherPeer = call.peer;
-                console.log(call);
-                setVideoCalling('incoming');
-                setVideoModalOpen(true);
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
-                    peerVideoEl.current.srcObject = stream;
-                    setStream(stream);
-                    socket.on('videocall-rejected', (data) => {
-                        setConnecting(false);
-                        closeVideo(stream, data);
-                    });
-                }).catch(err => {
-                    console.error('Failed to get local stream', err);
-                });
-
-            });
-        });
-
-
-        socket.on('welcome-message', (data) => {
-            const temp = {
-                newComer: true,
-                message: data.user + ' has joined ' + data.roomName + ' 🥳🥳🥳'
-            }
-            setAllMsg((allMsg) => [...allMsg, temp]);
-        });
-
-
-        socket.on('user-exit', (data) => {
-            const exitmsg = {
-                exitmsg: true,
-                message: data.user + ' has left!'
-            }
-            setAllMsg((allMsg) => [...allMsg, exitmsg]);
-        });
-
-        socket.on('connected-clients', (connectedClients) => {
-            setUsers(connectedClients);
-        });
-
-        socket.on('message-from-server', (msg) => {
-            setAllMsg((allMsg) => [...allMsg, msg]);
-            displayNotification(msg);
         });
     }
 
@@ -288,7 +271,7 @@ function ChatRoom() {
     const messageHandler = (e) => {
         setMessage(e.target.value);
         temp = e.target.value;
-        if (temp.length == 0) {
+        if (temp.length === 0) {
             setMsgOrAudio('audio');
         } else {
             setMsgOrAudio('msg');
@@ -305,30 +288,24 @@ function ChatRoom() {
                 + currentdate.getHours() + ":"
                 + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
-            setDateTime(datetime);
-            var user = window.localStorage.getItem('user');
+            const user = Gpayload.name;
+            const imageUrl = Gpayload.imageUrl;
             setAllMsg((allMsg) => [...allMsg, {
                 message: message,
                 user: user,
                 time: datetime,
+                imageUrl: imageUrl,
+                color: color
             }]);
             socket.emit('message-to-server', {
                 message: message,
                 user: user,
                 time: datetime,
-                color: color
+                color: color,
+                imageUrl: imageUrl
             });
             setMessage("");
             setMsgOrAudio('audio');
-        }
-    }
-
-    const nameHandler = (e) => {
-        e.preventDefault();
-        if (name.length !== 0) {
-            window.localStorage.setItem('user', name);
-            connectClient();
-            setModalIsOpen(false);
         }
     }
 
@@ -363,7 +340,6 @@ function ChatRoom() {
                     }
                 }).catch(function (err) {
                     console.log('The following getUserMedia error occurred: ' + err);
-                    //if (err === 'Permission denied') {recordAudio();}
                 }
                 );
         } else {
@@ -391,14 +367,26 @@ function ChatRoom() {
                         usersExp ? <PeopleAltIcon className="chevron-icon" onClick={() => { setUsersExp(false) }} /> : <PeopleAltIcon className="chevron-icon" onClick={() => { setUsersExp(true) }} />
                     }
                 </div>
-                <div>
+                <div className="participantsContainer">
+                <AvatarGroup className="avatarGroup" max={5}>
+                    {
+                        users.map((each, index) => (
+                            <Avatar title={each.name} className="participantsAvatar" alt={each.name} src={each.imageUrl} />
+                        ))
+                    }
+                </AvatarGroup>  
+                </div>
+                <div className="exitButton" onClick={async () => {
+                    window.location.href = "/create"
+                }}>
+                    <ExitToAppIcon />
                 </div>
             </div>
             <div className="main-window">
                 <div className={usersExp ? "users" : "nodisplay"}>
                     {
-                        users.map(each => (
-                            <div className="user">
+                        users.map((each, index) => (
+                            <div className="user" key={index}>
                                 <h4>{each.user}</h4>
                                 {
                                     each.peerId != peerId ? (
@@ -415,10 +403,10 @@ function ChatRoom() {
                         ))
                     }
                 </div>
-                <div className="chat-window">
+                <div ref={chatWindowRef} className="chat-window">
                     <div className="chats">
                         {
-                            (allMsg.length == 0) ? (
+                            (allMsg.length === 0) ? (
                                 <div className="group-intro">
                                     <h1>Welcome to {roomName} 🎉🎉🎉</h1>
                                     <h4>What's holding you back..!? Why Don't you invite more of your friends ?!!!</h4>
@@ -439,9 +427,13 @@ function ChatRoom() {
                                         </div>
                                     ) : (each.audioMsg) ? (
                                         <div className="audio-message">
+                                            
                                             <div className="senderinfo">
-                                                <h4 style={{ color: each.color || color }}>{each.user}</h4>
-                                                <h5>{each.time}</h5>
+                                                <div className="avatar">
+                                                    <Avatar className="avatar-icon" alt={Gpayload.name} src={Gpayload.imageUrl} />
+                                                </div>      
+                                                <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                <h5>{each.time}</h5>                                    
                                             </div>
                                             <audio src={window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/ogg; codecs=opus' }))} controls></audio>
                                         </div>
@@ -449,12 +441,13 @@ function ChatRoom() {
                                     ) : (
                                                     <div key={index} className="message">
                                                         <div className="senderinfo">
-                                                            <h4 style={{ color: each.color || color }}>{each.user}</h4>
-                                                            <h5>{each.time}</h5>
+                                                            <Avatar className="avatar-icon" alt={each.name} src={each.imageUrl} />
+                                                            <h4 style={{ color: each.color || color }}>{each.user}</h4> 
+                                                            <h5>{each.time}</h5>                                                           
                                                         </div>
                                                         <h5>{each.message || 'Not yet reached'}</h5>
                                                     </div>
-                                                )
+                                                ) 
                                 )))
                         }
                     </div>
@@ -494,19 +487,24 @@ function ChatRoom() {
                                         + currentdate.getMinutes() + ":"
                                         + currentdate.getSeconds();
                                     mediaRecorder.onstop = function (e) {
+                                        console.log(typeof chunks);
                                         socket.emit('message-to-server', {
                                             chunks: chunks,
-                                            user: name,
+                                            user: Gpayload.name,
                                             audioMsg: true,
+                                            imageUrl: Gpayload.imageUrl,
                                             color: color,
                                             time: date_time
                                         });
                                         setAllMsg(() => [...allMsg, {
                                             chunks: chunks,
-                                            user: name,
+                                            user: Gpayload.name,
+                                            imageUrl: Gpayload.imageUrl,
+                                            color: color,
                                             audioMsg: true,
                                             time: date_time
-                                        }])
+                                        }]);
+                                        console.log(typeof chunks)
                                         chunks = [];
                                         mediaRecorder.stream.getTracks().forEach(track => track.stop()); // stop each of them
                                         setAudioModal(false);
@@ -548,18 +546,21 @@ function ChatRoom() {
                         contentLabel="Example Modal"
                     >
                         {
-                            videoCalling == 'incoming' ? (
+                            videoCalling === 'incoming' ? (
                                 <>
                                     <div className="videoCallContainer">
                                         <video className="peer-video" muted playsInline ref={peerVideoEl} autoPlay></video>
                                     </div>
                                     <h2 className="incoming-videocall-text">Incoming Video call from {incomingVideocallUsername}</h2>
                                     <div className="video-callincoming-controls">
-                                        <div className="callaccept-iconContainer" onClick={() => {
+                                        <div className="callaccept-iconContainer" onClick={(e) => {
+                                            e.preventDefault();
                                             setVideoCalling('');
                                             setConnecting(false);
-                                            setVideoState(false);
-                                            setMicState(false);
+                                            setVideoState(true);
+                                            setMicState(true);       
+                                            console.log('streamState: ');
+                                            console.log(streamState);
                                             callState.answer(streamState);
                                             callState.on('stream', (remoteStream) => {
                                                 videoEl.current.srcObject = streamState;
@@ -570,7 +571,6 @@ function ChatRoom() {
                                         </div>
                                         <div className="callendincoming-iconContainer" onClick={() => {
                                             const tracks = streamState.getTracks();
-                                            setConnecting(false);
                                             setConnecting(false);
                                             setVideoState(false);
                                             socket.emit('videocall-reject', otherPeer);
@@ -603,7 +603,7 @@ function ChatRoom() {
                                                             <MicIcon onClick={() => {
                                                                 const tracks = streamState.getTracks();
                                                                 tracks.forEach(function (track) {
-                                                                    if (track.kind == 'audio')
+                                                                    if (track.kind === 'audio')
                                                                         track.enabled = false;
                                                                 });
                                                                 setMicState(!micState)
@@ -613,7 +613,7 @@ function ChatRoom() {
                                                                 <MicOffIcon onClick={() => {
                                                                     const tracks = streamState.getTracks();
                                                                     tracks.forEach(function (track) {
-                                                                        if (track.kind == 'audio')
+                                                                        if (track.kind === 'audio')
                                                                             track.enabled = true;
                                                                     });
                                                                     setMicState(!micState)
@@ -664,39 +664,20 @@ function ChatRoom() {
                         }
 
                     </Modal>
-
-                    <Modal
-                        isOpen={modalIsOpen}
-                        style={{
-                            overlay: { backgroundColor: 'rgb(27, 27, 27)', opacity: '0.98' }
-                        }}
-                        className="modal"
-                        contentLabel="Example Modal"
-                    >
-                        <form className="nameForm" onSubmit={nameHandler}>
-                            <h4>Enter your name for others to identify</h4>
-                            <input type="text" value={name} onChange={(e) => {
-                                e.preventDefault();
-                                setName(e.target.value);
-                            }} />
-                            <button type="submit">Save</button>
-                        </form>
-                    </Modal>
                     <div className="send-message">
-                        <form onSubmit={sendMessage} className="messageInputContainer">
+                        <div className="messageInputContainer">
                             <input type="text" onChange={(e) => {
-                                e.preventDefault();
                                 messageHandler(e);
                             }} value={message} placeholder="Message" />
 
                             {
-                                (msgOrAudio == 'audio') ? (
+                                (msgOrAudio === 'audio') ? (
                                     <MicIcon onClick={recordAudioModelPop} className="send-icon" />
                                 ) : (
-                                        <SendIcon onClick={sendMessage} type="submit" className="send-icon" />
+                                    <SendIcon onClick={sendMessage} className="send-icon" />
                                     )
                             }
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -705,4 +686,4 @@ function ChatRoom() {
     )
 }
 
-export default ChatRoom;
+export default withRouter(ChatRoom);
