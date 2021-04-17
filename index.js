@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
 const User = require('./models/userModel');
 const PublicGroup = require('./models/publicGroupModel')
 const PrivateGroup = require('./models/privateGroupModel');
-require('dotenv').config();
+//require('dotenv').config();
 
 app.use(express.static(path.join(__dirname, 'audio')));
 app.use(cors());
