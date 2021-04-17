@@ -18,9 +18,9 @@ const privateGroupSchema = mongoose.Schema({
         exitmsg: {
             type: Boolean
         },
-        chunks: [{
-            type: Buffer
-        }],
+        chunkName: {
+            type: String
+        },
         audioMsg: {
             type: Boolean
         },

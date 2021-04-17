@@ -4,6 +4,7 @@ const server = require('http').createServer(app);
 const path = require('path');
 //const morgan = require('morgan');
 const {OAuth2Client} = require('google-auth-library');
+const fs = require('fs');
 const io = require('socket.io')(server);
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
@@ -12,8 +13,9 @@ const mongoose = require('mongoose');
 const User = require('./models/userModel');
 const PublicGroup = require('./models/publicGroupModel')
 const PrivateGroup = require('./models/privateGroupModel');
-//require('dotenv').config();
+require('dotenv').config();
 
+app.use(express.static(path.join(__dirname, 'audio')));
 app.use(cors());
 app.use(express.json());
 //app.use(morgan('dev'));
@@ -28,10 +30,12 @@ mongoose.connect(
 
 
 
+
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
+
 
 app.post('/auth', async (req, res) => {
     const tokenId = req.body.tokenId;
@@ -87,7 +91,27 @@ app.post('/chats', async (req, res) => {
         if (!group || !group.participants.includes(email)) {
             return
         }
+        console.log(group.chats)
         res.status(200).json(group.chats);
+})
+
+app.post('/unlinkAudio', async (req, res) => {
+    const groupName = req.body.groupName;
+    const group = await PrivateGroup.findOne({
+        groupName: groupName
+    });
+    console.log(groupName)
+    if (!group) return res.status(404).json({
+        message: 'No such group found !'
+    });
+    group.chats.map((eachChat) => {
+        if (eachChat.audioMsg === true) {
+            fs.unlinkSync(`./audio/${eachChat.chunkName}`)
+        }
+    });
+    res.status(200).json({
+        message: 'OK'
+    })
 })
 
 app.post('/verify', async (req, res) => {
@@ -419,10 +443,21 @@ io.on('connection', socket => {
     socket.on('message-to-server', async (msg) => {
         console.log('message:::::');
         console.log(msg);
+        console.log(msg.chunks)
         const group = await PrivateGroup.findOne({
             groupName: socket.roomName
         });
+
         if (group) {
+            const filename = uuidv4() + '.wav';
+            if (msg.chunks) {
+                fs.writeFile(`./audio/${filename}`, msg.chunks[0], 'base64', function(err) {
+                    console.log(err);
+                });
+            }
+            
+            msg['chunkName'] = filename;
+
             group.chats.push({
                 user: msg.user,
                 email: socket.email,
@@ -432,7 +467,7 @@ io.on('connection', socket => {
                 newComer: msg.newComer ? true : false,
                 exitMsg: msg.exitMsg ? true: false,
                 audioMsg: msg.audioMsg ? true : false,
-                chunks: msg.chunks ? msg.chunks : null,
+                chunkName: msg.chunks ? filename : null,
             });
             console.log('chat ::::::')
             console.log({

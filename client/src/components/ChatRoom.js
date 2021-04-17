@@ -334,9 +334,11 @@ function ChatRoom(props) {
                 }).then(function (stream) {
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.start();
+                    var reader = new FileReader();
                     mediaRecorder.ondataavailable = function (e) {
                         console.log('Data available | Collection audio chunks...');
                         chunks.push(e.data);
+                        console.log(chunks);
                     }
                 }).catch(function (err) {
                     console.log('The following getUserMedia error occurred: ' + err);
@@ -435,7 +437,10 @@ function ChatRoom(props) {
                                                 <h4 style={{ color: each.color || color }}>{each.user}</h4> 
                                                 <h5>{each.time}</h5>                                    
                                             </div>
-                                            <audio src={window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/ogg; codecs=opus' }))} controls></audio>
+                                            {
+                                                console.log(each.chunks)
+                                            }
+                                            <audio src={each.chunkName ? `/${each.chunkName}` : window.URL.createObjectURL(new Blob(each.chunks, { 'type': 'audio/wav' }))} controls></audio>
                                         </div>
 
                                     ) : (
